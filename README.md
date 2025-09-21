@@ -1,95 +1,128 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# One Day at a Time (ODAT)
+
+An interactive financial simulation game designed to build empathy and understanding of the challenges faced by low-income families through immersive decision-making experiences.
+
+## About
+
+**One Day at a Time** is an experiential learning tool that puts participants in the shoes of families making difficult financial decisions under resource constraints. Through 14 days of realistic scenarios, players navigate trade-offs between basic needs, health, family stability, and employment while managing limited resources.
+
+This application was developed in collaboration with **Youth Corps Singapore** as a voluntary contribution to support their community engagement and education initiatives. The digital platform enables facilitators to run engaging workshops that foster empathy and awareness about socioeconomic challenges.
+
+## Features
+
+- **Real-time Multiplayer**: Multiple participants can join sessions simultaneously
+- **Presenter Controls**: Dedicated interface for facilitators to manage game flow
+- **Interactive Scenarios**: 14 days of realistic financial decision-making
+- **Consequence System**: Interconnected hit system affecting family, health, and employment
+- **Financial Tools**: Borrowing, loan repayment, and asset management options
+- **Results Dashboard**: Comprehensive end-game analysis and discussion points
 
 ## Getting Started
 
-First, run the development server:
+This app uses [Next.js](https://nextjs.org) with [Convex](https://convex.dev) as a real-time backend.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Prerequisites
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Node.js 18+
+- pnpm (recommended) or npm
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Local Development
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Install dependencies:**
 
-## Learn More
+   ```bash
+   pnpm install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **Start the Next.js development server:**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   pnpm dev
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **In a separate terminal, start Convex:**
 
-## Deploy on Vercel
+   ```bash
+   npx convex dev
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. **Seed the game scenarios:**
+   - Open the Convex dashboard URL printed in the terminal
+   - Navigate to Functions
+   - Run the `scenarios:seed` function once
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+5. **Access the application:**
+   - Navigate to [http://localhost:3000](http://localhost:3000)
+   - Create a new session to get a room code
+   - Share the code with participants to join
 
-## ODAT Game Quick Start
+### Quick Start Guide
 
-This app uses Convex as a realtime backend. To run locally:
+**For Facilitators:**
 
-1. Install dependencies and start Next.js dev server.
-2. In a separate terminal, start Convex dev which also sets `NEXT_PUBLIC_CONVEX_URL`.
-3. Seed the scenarios using the `scenarios:seed` function.
+1. Click "Create New Session" to generate a room code
+2. Share the code with participants
+3. Use the presenter controls to start the game and advance through days
+4. Present scenarios using the full-screen presentation view
 
-Steps:
+**For Participants:**
 
-```bash
-pnpm install
-pnpm dev
-```
+1. Enter the room code and your name
+2. Make financial decisions each day by choosing Option A or B
+3. Monitor your resources, loans, and family/health/job status
+4. View final results and discuss outcomes
 
-In another terminal:
+## Game Mechanics
 
-```bash
-npx convex dev
-```
+The simulation includes several interconnected systems designed to reflect real-world financial pressures:
 
-Then open the Convex dashboard URL printed in the terminal, go to Functions, run `scenarios:seed` once.
-
-Navigate to <http://localhost:3000> and:
-
-- Create Game to get a code and open the host dashboard.
-- Share the code; players join from the home page.
-- Host starts the game and advances days. Players choose A/B each day.
-- Results page shows final resources and choices.
-
-### Game Mechanics
-
-The simulation includes several interconnected systems:
-
-**Hit System:**
+### Hit System
 
 - Players accumulate Family, Health, and Job hits based on their choices
-- 3 Family hits → 1 Health hit (Family hits reset to 0)
-- 3 Health hits → 1 Job hit (Health hits reset to 0)
-- 3 Job hits → Player becomes unemployed (permanent)
+- **3 Family hits** → 1 Health hit (Family hits reset to 0)
+- **3 Health hits** → 1 Job hit (Health hits reset to 0)
+- **3 Job hits** → Player becomes unemployed (permanent)
 
-**Financial Options:**
+### Financial Options
 
-- **Borrow Money**: Up to 3 times during the game
-- **Pawn Wedding Ring**: Get $150 immediately (one-time)
+- **Borrow Money**: Up to 3 times during the game (increments of $100-$400)
+- **Pawn Wedding Ring**: Get $150 immediately (one-time option)
 - **Repay Loan**: Pay back borrowed amount + 10% interest
-- **Redeem Ring**: Get ring back for $159 (if pawned)
+- **Redeem Ring**: Retrieve wedding ring for $159 (if previously pawned)
 
-**Employment Impact:**
+### Employment Impact
 
-- On Day 14, unemployed players cannot choose the "Receive Salary" option
-- Starting cash is $150 per player (increased from $100)
+- Starting resources: $150 per player
+- On Day 14, unemployed players cannot choose salary-related options
+- Certain choices are restricted based on employment status
 
-**Player Status Panel:**
+### Decision Consequences
 
-- Real-time display of cash, loan balance, hits, employment status
-- Interactive buttons for financial actions with validation
-- Visual hit indicators showing progress toward next penalty
+- **Day 5 → Day 8**: Previous choices affect available options
+- **Day 14**: Job performance (hit count) determines final option availability
+- **End Game**: Unpaid loans automatically deducted from final resources
+
+## Technology Stack
+
+- **Frontend**: Next.js 15, React, TypeScript
+- **Backend**: Convex (real-time database and functions)
+- **Styling**: Tailwind CSS, shadcn/ui components
+- **Deployment**: Vercel (recommended)
+
+## Collaboration
+
+This project was developed in collaboration with **Youth Corps Singapore** to support their community engagement and educational initiatives. The development was completed voluntarily to contribute to meaningful social impact programs.
+
+### About Youth Corps Singapore
+
+Youth Corps Singapore is a platform that connects young people to volunteer opportunities and community projects, fostering civic engagement and social responsibility among Singapore's youth.
+
+## Acknowledgments
+
+- **Youth Corps Singapore** for the collaboration and opportunity to contribute to community education
+- The original "One Day at a Time" experiential learning methodology
+- All facilitators and participants who help bring awareness to socioeconomic challenges
+
+---
+
+Developed by Archer Chua in collaboration with Youth Corps Singapore
