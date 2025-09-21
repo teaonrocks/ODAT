@@ -1,103 +1,115 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Footer } from "@/components/Footer";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+	const router = useRouter();
+	const createSession = useMutation(api.sessions.create);
+	const join = useMutation(api.players.join);
+	const [code, setCode] = useState("");
+	const [name, setName] = useState("");
+	const [loadingCreate, setLoadingCreate] = useState(false);
+	const [loadingJoin, setLoadingJoin] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+	const onCreate = async () => {
+		try {
+			setLoadingCreate(true);
+			const res = await createSession({});
+			router.push(`/session/${res.sessionCode}/host/controls`);
+		} finally {
+			setLoadingCreate(false);
+		}
+	};
+
+	const onJoin = async () => {
+		if (!code || !name) return;
+		try {
+			setLoadingJoin(true);
+			const codeUpper = code.trim().toUpperCase();
+			const playerId = await join({ sessionCode: codeUpper, name });
+			if (typeof window !== "undefined") {
+				localStorage.setItem("odat_player_id", playerId);
+				localStorage.setItem("odat_player_name", name);
+			}
+			router.push(`/session/${codeUpper}`);
+		} finally {
+			setLoadingJoin(false);
+		}
+	};
+
+	return (
+		<div className="min-h-screen bg-background flex flex-col">
+			<main className="flex-1 flex flex-col items-center justify-center px-4">
+				<div className="w-full max-w-md space-y-8 text-center">
+					{/* Header */}
+					<div className="space-y-4">
+						<h1 className="text-4xl md:text-5xl font-heading font-bold text-foreground">
+							One Day At a Time
+						</h1>
+						<p className="text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
+							An experiential activity to gain greater awareness of the
+							challenges faced by a low-income family
+						</p>
+					</div>
+
+					{/* Form Section */}
+					<div className="space-y-4 pt-8">
+						<div className="space-y-3">
+							<Input
+								placeholder="Room Code"
+								value={code}
+								onChange={(e) => setCode(e.target.value.toUpperCase())}
+								className="h-12 text-center text-lg font-medium bg-muted/30 border-muted-foreground/20 focus:border-primary"
+							/>
+							<Input
+								placeholder="Your Name"
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+								className="h-12 text-center text-lg font-medium bg-muted/30 border-muted-foreground/20 focus:border-primary"
+							/>
+						</div>
+
+						<div className="flex gap-3 pt-4">
+							<Button
+								onClick={onJoin}
+								disabled={!code || !name || loadingJoin}
+								className="flex-1 h-12 text-lg font-medium bg-primary hover:bg-primary/90 text-primary-foreground"
+							>
+								{loadingJoin ? "Joining..." : "Join Session"}
+							</Button>
+						</div>
+
+						<div className="pt-6">
+							<div className="relative">
+								<div className="absolute inset-0 flex items-center">
+									<span className="w-full border-t border-muted-foreground/20" />
+								</div>
+								<div className="relative flex justify-center text-sm">
+									<span className="bg-background px-4 text-muted-foreground">
+										or
+									</span>
+								</div>
+							</div>
+						</div>
+
+						<Button
+							onClick={onCreate}
+							disabled={loadingCreate}
+							variant="outline"
+							className="w-full h-12 text-lg font-medium border-muted-foreground/20 hover:bg-muted/30"
+						>
+							{loadingCreate ? "Creating..." : "Create New Session"}
+						</Button>
+					</div>
+				</div>
+			</main>
+			<Footer />
+		</div>
+	);
 }
