@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -24,14 +24,12 @@ function GameOptions({
 	player,
 	playerId,
 	makeChoice,
-	setMessage,
 }: {
 	session: Session;
 	scenario: Scenario;
 	player: Player;
 	playerId: string | null;
 	makeChoice: MakeChoiceMutation;
-	setMessage: (message: string | null) => void;
 }) {
 	// Check if it's Day 14 and player is unemployed
 	const isDay14 = session.currentDay === 14;
@@ -105,11 +103,8 @@ function GameOptions({
 												consequence: scenario.optionA_consequence,
 											});
 										} catch (error) {
-											setMessage(
-												error instanceof Error
-													? error.message
-													: "An error occurred"
-											);
+											// Error handling could be added here if needed
+											console.error("Failed to make choice:", error);
 										}
 									}}
 									disabled={
@@ -147,11 +142,8 @@ function GameOptions({
 												consequence: scenario.optionB_consequence,
 											});
 										} catch (error) {
-											setMessage(
-												error instanceof Error
-													? error.message
-													: "An error occurred"
-											);
+											// Error handling could be added here if needed
+											console.error("Failed to make choice:", error);
 										}
 									}}
 									disabled={
@@ -201,7 +193,6 @@ export default function PlayerPage() {
 		session?.currentDay ? { day: session.currentDay } : "skip"
 	);
 	const makeChoice = useMutation(api.players.makeChoice);
-	const [message, setMessage] = useState<string | null>(null);
 
 	const playerId = useMemo(() => {
 		if (typeof window === "undefined") return null;
@@ -289,7 +280,6 @@ export default function PlayerPage() {
 							player={player}
 							playerId={playerId}
 							makeChoice={makeChoice}
-							setMessage={setMessage}
 						/>
 					</div>
 				</div>
