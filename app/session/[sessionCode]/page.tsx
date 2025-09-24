@@ -4,9 +4,18 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Doc, Id } from "@/convex/_generated/dataModel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlayerStatus } from "@/components/PlayerStatus";
+
+type Session = Doc<"sessions">;
+type Player = Doc<"players">;
+type Scenario = Doc<"scenarios">;
+type Choice = Player["choices"][0];
+type MakeChoiceMutation = ReturnType<
+	typeof useMutation<typeof api.players.makeChoice>
+>;
 
 // Component for displaying game options and choices
 function GameOptions({
@@ -17,11 +26,11 @@ function GameOptions({
 	makeChoice,
 	setMessage,
 }: {
-	session: any;
-	scenario: any;
-	player: any;
+	session: Session;
+	scenario: Scenario;
+	player: Player;
 	playerId: string | null;
-	makeChoice: any;
+	makeChoice: MakeChoiceMutation;
 	setMessage: (message: string | null) => void;
 }) {
 	// Check if it's Day 14 and player is unemployed
@@ -31,7 +40,7 @@ function GameOptions({
 	// Check Day 5 choice for Day 8 restrictions
 	const isDay8 = session.currentDay === 8;
 	const day5Choice = (player.choices ?? []).find(
-		(choice: any) => choice.day === 5
+		(choice: Choice) => choice.day === 5
 	);
 	const day5OptionADisabled = isDay8 && day5Choice?.choice === "A"; // If chose A on day 5, disable B on day 8
 	const day5OptionBDisabled = isDay8 && day5Choice?.choice === "B"; // If chose B on day 5, disable A on day 8
@@ -49,12 +58,12 @@ function GameOptions({
 
 	// Check if player has already made a choice for the current day
 	const hasChosenToday = (player.choices ?? []).some(
-		(choice: any) => choice.day === session.currentDay
+		(choice: Choice) => choice.day === session.currentDay
 	);
 
 	// Get the choice made today (if any) to show the result
 	const todaysChoice = (player.choices ?? []).find(
-		(choice: any) => choice.day === session.currentDay
+		(choice: Choice) => choice.day === session.currentDay
 	);
 
 	return (
@@ -65,27 +74,15 @@ function GameOptions({
 				</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-3 sm:space-y-4">
-				<p className="text-center text-muted-foreground text-sm sm:text-base">
-					Choose your option. The host will show you the details.
-				</p>
-
 				{hasChosenToday ? (
 					<div className="space-y-3 sm:space-y-4">
-						<div className="p-3 sm:p-4 bg-muted/50 border border-border rounded-lg">
-							<h3 className="font-medium text-foreground mb-2 text-sm sm:text-base">
-								Your Choice:
+						<div className="p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
+							<h3 className="font-medium text-green-800 mb-2 text-sm sm:text-base text-center">
+								✓ Choice Submitted
 							</h3>
-							<p className="text-sm text-muted-foreground leading-relaxed">
-								{todaysChoice?.choice === "A" ? "Option A" : "Option B"} - $
-								{Math.abs(todaysChoice?.consequence.resourceChange || 0)}
-							</p>
-						</div>
-						<div className="p-3 sm:p-4 bg-primary/10 border border-primary/20 rounded-lg">
-							<h3 className="font-medium text-foreground mb-2 text-sm sm:text-base">
-								Result:
-							</h3>
-							<p className="text-sm text-muted-foreground leading-relaxed">
-								{todaysChoice?.consequence.narrative}
+							<p className="text-sm text-green-600 text-center leading-relaxed">
+								You selected{" "}
+								{todaysChoice?.choice === "A" ? "Option A" : "Option B"}
 							</p>
 						</div>
 						<p className="text-center text-muted-foreground text-xs sm:text-sm px-2">
@@ -101,16 +98,12 @@ function GameOptions({
 									onClick={async () => {
 										if (!playerId) return;
 										try {
-											const result = await makeChoice({
-												playerId: playerId as any,
+											await makeChoice({
+												playerId: playerId as Id<"players">,
 												day: session.currentDay,
 												choice: "A",
 												consequence: scenario.optionA_consequence,
 											});
-											setMessage(
-												scenario.optionA_consequence.narrative +
-													` (Resources: $${result.resources})`
-											);
 										} catch (error) {
 											setMessage(
 												error instanceof Error
@@ -147,16 +140,12 @@ function GameOptions({
 									onClick={async () => {
 										if (!playerId) return;
 										try {
-											const result = await makeChoice({
-												playerId: playerId as any,
+											await makeChoice({
+												playerId: playerId as Id<"players">,
 												day: session.currentDay,
 												choice: "B",
 												consequence: scenario.optionB_consequence,
 											});
-											setMessage(
-												scenario.optionB_consequence.narrative +
-													` (Resources: $${result.resources})`
-											);
 										} catch (error) {
 											setMessage(
 												error instanceof Error
@@ -195,10 +184,10 @@ function GameOptions({
 }
 
 // Component for displaying player status section
-function PlayerStatusSection({ player }: { player: any }) {
+function PlayerStatusSection({ player }: { player: Player }) {
 	return (
 		<div>
-			<PlayerStatus player={player as any} />
+			<PlayerStatus player={player} />
 		</div>
 	);
 }
@@ -221,14 +210,14 @@ export default function PlayerPage() {
 
 	const player = useQuery(
 		api.players.getById,
-		playerId ? { playerId: playerId as any } : "skip"
+		playerId ? { playerId: playerId as Id<"players"> } : "skip"
 	);
 
 	useEffect(() => {
-		if (session?.gameState === "FINISHED") {
-			router.replace(`/session/${sessionCode}/results`);
+		if (session?.gameState === "FINISHED" && playerId) {
+			router.replace(`/session/${sessionCode}/results?playerId=${playerId}`);
 		}
-	}, [session, router, sessionCode]);
+	}, [session, router, sessionCode, playerId]);
 
 	if (session === undefined) return null; // loading
 	if (!session) return <div className="p-6">Session not found.</div>;
@@ -253,7 +242,38 @@ export default function PlayerPage() {
 	}
 
 	if (session.gameState === "IN_GAME") {
-		if (!scenario || !player) return <div className="p-6">Loading…</div>;
+		if (!scenario || !player) {
+			return (
+				<main className="min-h-screen p-2 sm:p-4 space-y-2 sm:space-y-4">
+					<div className="max-w-4xl mx-auto flex flex-col gap-2 sm:gap-4">
+						{/* Loading State */}
+						<Card className="w-full">
+							<CardContent className="flex flex-col items-center justify-center py-12 sm:py-16 space-y-6">
+								{/* Animated loading spinner */}
+								<div className="relative">
+									<div className="w-12 h-12 border-4 border-muted border-t-primary rounded-full animate-spin"></div>
+								</div>
+
+								{/* Loading text */}
+								<div className="text-center space-y-2">
+									<h3 className="text-lg sm:text-xl font-semibold text-foreground">
+										Loading Day {session.currentDay}
+									</h3>
+									<p className="text-sm sm:text-base text-muted-foreground">
+										Preparing your scenario...
+									</p>
+								</div>
+
+								{/* Session info */}
+								<div className="text-xs text-muted-foreground">
+									Session: {session.sessionCode}
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+				</main>
+			);
+		}
 
 		return (
 			<main className="min-h-screen p-2 sm:p-4 space-y-2 sm:space-y-4">
@@ -271,12 +291,6 @@ export default function PlayerPage() {
 							makeChoice={makeChoice}
 							setMessage={setMessage}
 						/>
-
-						{message && (
-							<div className="mt-2 p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
-								{message}
-							</div>
-						)}
 					</div>
 				</div>
 			</main>

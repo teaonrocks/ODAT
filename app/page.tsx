@@ -1,21 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Footer } from "@/components/Footer";
 
 export default function Home() {
 	const router = useRouter();
+	const searchParams = useSearchParams();
 	const createSession = useMutation(api.sessions.create);
 	const join = useMutation(api.players.join);
 	const [code, setCode] = useState("");
 	const [name, setName] = useState("");
 	const [loadingCreate, setLoadingCreate] = useState(false);
 	const [loadingJoin, setLoadingJoin] = useState(false);
+
+	// Auto-fill room code from URL parameter
+	useEffect(() => {
+		const codeParam = searchParams.get("code");
+		if (codeParam) {
+			setCode(codeParam.toUpperCase());
+		}
+	}, [searchParams]);
 
 	const onCreate = async () => {
 		try {

@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Doc } from "@/convex/_generated/dataModel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
 	Dialog,
 	DialogContent,
@@ -14,17 +13,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 
-interface Player {
-	_id: string;
-	resources: number;
-	familyHits: number;
-	healthHits: number;
-	jobHits: number;
-	isEmployed: boolean;
-	loanBalance: number;
-	borrowCount: number;
-	ringPawned: boolean;
-}
+type Player = Doc<"players">;
 
 interface PlayerStatusProps {
 	player: Player;
@@ -72,7 +61,7 @@ export function PlayerStatus({ player }: PlayerStatusProps) {
 
 	const handleBorrow = async (amount: number) => {
 		try {
-			await borrowMoney({ playerId: player._id as any, amount });
+			await borrowMoney({ playerId: player._id, amount });
 			setBorrowDialog(false);
 		} catch (error) {
 			alert(error instanceof Error ? error.message : "Failed to borrow money");
@@ -82,7 +71,7 @@ export function PlayerStatus({ player }: PlayerStatusProps) {
 	const handleRepay = async (amount: number) => {
 		try {
 			await repayLoan({
-				playerId: player._id as any,
+				playerId: player._id,
 				repaymentAmount: amount,
 			});
 			setRepayDialog(false);
@@ -93,7 +82,7 @@ export function PlayerStatus({ player }: PlayerStatusProps) {
 
 	const handlePawnRing = async () => {
 		try {
-			await pawnRing({ playerId: player._id as any });
+			await pawnRing({ playerId: player._id });
 		} catch (error) {
 			alert(error instanceof Error ? error.message : "Failed to pawn ring");
 		}
@@ -101,7 +90,7 @@ export function PlayerStatus({ player }: PlayerStatusProps) {
 
 	const handleRedeemRing = async () => {
 		try {
-			await redeemRing({ playerId: player._id as any });
+			await redeemRing({ playerId: player._id });
 		} catch (error) {
 			alert(error instanceof Error ? error.message : "Failed to redeem ring");
 		}

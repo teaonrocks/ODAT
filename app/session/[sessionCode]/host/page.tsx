@@ -4,7 +4,43 @@ import { useParams } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+
+function QRCodeCard({ sessionCode }: { sessionCode: string }) {
+	const [qrUrl, setQrUrl] = useState<string>("");
+
+	useEffect(() => {
+		if (typeof window !== "undefined") {
+			console.log(window.location.origin);
+			const joinUrl = `${window.location.origin == "http://localhost:3000" ? "http://192.168.1.41:3000" : window.location.origin}/?code=${sessionCode}`;
+			const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(joinUrl)}`;
+			setQrUrl(qrCodeUrl);
+		}
+	}, [sessionCode]);
+
+	if (!qrUrl) return null;
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle className="text-xl sm:text-2xl">Scan to Join</CardTitle>
+			</CardHeader>
+			<CardContent className="flex flex-col items-center space-y-4">
+				<div className="p-4 bg-white rounded-lg shadow-inner">
+					{/* eslint-disable-next-line @next/next/no-img-element */}
+					<img
+						src={qrUrl}
+						alt="QR Code to join session"
+						className="w-48 h-48"
+					/>
+				</div>
+				<p className="text-sm text-muted-foreground">
+					Players can scan this code to join the session
+				</p>
+			</CardContent>
+		</Card>
+	);
+}
 
 export default function HostPage() {
 	const { sessionCode } = useParams<{ sessionCode: string }>();
@@ -55,6 +91,8 @@ export default function HostPage() {
 							</div>
 						</CardContent>
 					</Card>
+
+					<QRCodeCard sessionCode={session.sessionCode} />
 
 					<Card>
 						<CardContent className="py-6">
@@ -185,7 +223,7 @@ export default function HostPage() {
 					</div>
 
 					{/* Instructions */}
-					<Card>
+					{/* <Card>
 						<CardContent className="text-center py-6">
 							<p className="text-base sm:text-lg text-muted-foreground">
 								Players: Choose your option using the blue or yellow buttons
@@ -200,7 +238,7 @@ export default function HostPage() {
 								</a>
 							</div>
 						</CardContent>
-					</Card>
+					</Card> */}
 				</div>
 			</main>
 		);
