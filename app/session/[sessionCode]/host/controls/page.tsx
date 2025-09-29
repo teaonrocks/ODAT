@@ -19,6 +19,7 @@ export default function PresenterControlsPage() {
 
 	const startGame = useMutation(api.sessions.startGame);
 	const nextDay = useMutation(api.sessions.advanceDay);
+	const toggleLayout = useMutation(api.sessions.toggleLayoutPreference);
 
 	useEffect(() => {
 		if (session?.gameState === "IN_GAME") {
@@ -270,6 +271,19 @@ export default function PresenterControlsPage() {
 									}
 								>
 									🔗 Copy Player Link
+								</Button>
+								<Button
+									variant="outline"
+									onClick={async () => {
+										if (!session?._id) return;
+										await toggleLayout({ sessionId: session._id });
+									}}
+								>
+									🔄 Toggle Layout (
+									{session.layoutPreference === "status-top"
+										? "Status Top"
+										: "Choices Top"}
+									)
 								</Button>
 							</div>
 						</CardContent>

@@ -74,7 +74,7 @@ export default function HostPage() {
 								One Day at a Time
 							</CardTitle>
 							<p className="text-xl sm:text-2xl text-muted-foreground mt-4">
-								Financial Decision Game
+								An experiential activity
 							</p>
 						</CardHeader>
 					</Card>
@@ -142,16 +142,10 @@ export default function HostPage() {
 					{/* Header */}
 					<Card>
 						<CardHeader>
-							<div className="flex justify-between items-center">
+							<div className="flex justify-center items-center">
 								<CardTitle className="text-2xl font-bold">
-									One Day at a Time
-								</CardTitle>
-								<div className="text-right">
-									<p className="text-sm text-muted-foreground">
-										Session: {session.sessionCode}
-									</p>
 									<p className="text-2xl font-bold">Day {session.currentDay}</p>
-								</div>
+								</CardTitle>
 							</div>
 						</CardHeader>
 					</Card>
@@ -160,7 +154,7 @@ export default function HostPage() {
 					<Card>
 						<CardContent>
 							<div className="bg-muted/50 rounded-lg p-6 sm:p-8">
-								<p className="text-lg sm:text-2xl leading-relaxed text-center">
+								<p className="text-lg sm:text-3xl leading-relaxed text-center font-bold">
 									{scenario.prompt}
 								</p>
 							</div>
@@ -168,23 +162,19 @@ export default function HostPage() {
 					</Card>
 
 					{/* Options */}
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 						{/* Option A - Blue */}
-						<Card className="border-blue-500 ">
+						<Card className="bg-blue-600 flex flex-col">
 							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<span className="bg-blue-600 text-white px-3 py-1 rounded-full text-lg font-bold">
-										Option A
-									</span>
-								</CardTitle>
+								<CardTitle className="flex items-center gap-2"></CardTitle>
 							</CardHeader>
-							<CardContent className="space-y-4">
-								<p className="text-base sm:text-lg leading-relaxed">
+							<CardContent className="flex-1 flex flex-col justify-between space-y-4">
+								<p className="text-base sm:text-2xl leading-relaxed text-black text-center">
 									{scenario.optionA_text}
 								</p>
 								<div className="text-right">
-									<div className="inline-block bg-blue-600 text-white px-4 py-2 rounded-full">
-										<span className="text-xl font-bold">
+									<div className="inline-block bg-neutral-50 text-white px-4 py-2 rounded-full">
+										<span className="text-xl font-bold text-black">
 											$
 											{Math.abs(
 												scenario.optionA_consequence.resourceChange || 0
@@ -196,20 +186,20 @@ export default function HostPage() {
 						</Card>
 
 						{/* Option B - Yellow */}
-						<Card className="border-yellow-500">
+						<Card className="bg-yellow-600 flex flex-col">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
-									<span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-lg font-bold">
+									{/* <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-lg font-bold">
 										Option B
-									</span>
+									</span> */}
 								</CardTitle>
 							</CardHeader>
-							<CardContent className="space-y-4">
-								<p className="text-base sm:text-lg leading-relaxed">
+							<CardContent className="flex-1 flex flex-col justify-between space-y-4">
+								<p className="text-base sm:text-2xl leading-relaxed text-black text-center">
 									{scenario.optionB_text}
 								</p>
 								<div className="text-right">
-									<div className="inline-block bg-yellow-500 text-black px-4 py-2 rounded-full">
+									<div className="inline-block bg-neutral-50 text-black px-4 py-2 rounded-full">
 										<span className="text-xl font-bold">
 											$
 											{Math.abs(

@@ -92,3 +92,18 @@ export const advanceDay = mutation({
 		return true;
 	},
 });
+
+export const toggleLayoutPreference = mutation({
+	args: { sessionId: v.id("sessions") },
+	handler: async (ctx, { sessionId }) => {
+		const session = await ctx.db.get(sessionId);
+		if (!session) throw new Error("Session not found");
+
+		const currentLayout = session.layoutPreference || "choices-top";
+		const newLayout =
+			currentLayout === "choices-top" ? "status-top" : "choices-top";
+
+		await ctx.db.patch(sessionId, { layoutPreference: newLayout });
+		return newLayout;
+	},
+});

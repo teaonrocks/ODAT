@@ -30,6 +30,7 @@ export default defineSchema({
 		gameState: v.string(), // "LOBBY" | "IN_GAME" | "FINISHED"
 		currentDay: v.number(), // 0..14
 		hostId: v.string(),
+		layoutPreference: v.optional(v.string()), // "choices-top" | "status-top"
 	}).index("by_code", ["sessionCode"]),
 
 	players: defineTable({

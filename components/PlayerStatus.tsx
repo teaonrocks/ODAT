@@ -21,31 +21,50 @@ interface PlayerStatusProps {
 
 function HitsDisplay({
 	current,
-	max = 3,
 	label,
+	hitType,
+	showGreyedOut = false,
 }: {
 	current: number;
-	max?: number;
 	label: string;
+	hitType: "family" | "health" | "job";
+	showGreyedOut?: boolean;
 }) {
+	const getHitColors = (
+		type: "family" | "health" | "job",
+		isGreyed: boolean = false
+	) => {
+		if (isGreyed) {
+			return "bg-gray-400 border-gray-400 opacity-50";
+		}
+
+		switch (type) {
+			case "family":
+				return "bg-blue-500 border-blue-500";
+			case "health":
+				return "bg-red-500 border-red-500";
+			case "job":
+				return "bg-green-500 border-green-500";
+			default:
+				return "bg-red-500 border-red-500";
+		}
+	};
+
 	return (
-		<div className="flex items-center gap-2">
-			<span className="text-sm font-medium w-16">{label}:</span>
+		<div className="flex items-center gap-2 ">
+			<span className="text-sm font-medium w-auto">{label} hits:</span>
 			<div className="flex gap-1">
-				{Array.from({ length: max }, (_, i) => (
-					<div
-						key={i}
-						className={`w-3 h-3 rounded-full border ${
-							i < current
-								? "bg-red-500 border-red-500"
-								: "bg-gray-200 border-gray-300"
-						}`}
-					/>
-				))}
+				{current === 0 ? (
+					<></>
+				) : (
+					Array.from({ length: current }, (_, i) => (
+						<div
+							key={i}
+							className={`w-3 h-3 rounded-full border ${getHitColors(hitType, showGreyedOut)}`}
+						/>
+					))
+				)}
 			</div>
-			<span className="text-sm text-gray-600">
-				({current}/{max})
-			</span>
 		</div>
 	);
 }
@@ -99,34 +118,11 @@ export function PlayerStatus({ player }: PlayerStatusProps) {
 	return (
 		<>
 			<Card className="w-full">
-				<CardHeader>
-					<CardTitle>Player Status</CardTitle>
-				</CardHeader>
 				<CardContent className="space-y-4">
 					{/* Financial Status */}
-					<div className="space-y-2">
-						<div className="text-lg font-semibold">
-							Cash: ${player.resources}
-						</div>
-						<div className="text-sm text-gray-600">
-							Loan: ${player.loanBalance}
-						</div>
-						<div className="text-sm text-gray-600">
-							Wedding Ring: {player.ringPawned ? "Pawned" : "Available"}
-						</div>
-						<div className="text-sm text-gray-600">
-							Employment: {player.isEmployed ? "Employed" : "Unemployed"}
-						</div>
+					<div className="text-2xl font-semibold">
+						Cash: ${player.resources}
 					</div>
-
-					{/* Hits Display */}
-					<div className="space-y-2">
-						<HitsDisplay current={player.familyHits} label="Family" />
-						<HitsDisplay current={player.healthHits} label="Health" />
-						<HitsDisplay current={player.jobHits} label="Job" />
-					</div>
-
-					{/* Action Buttons */}
 					<div className="grid grid-cols-2 gap-2">
 						<Button
 							onClick={() => setBorrowDialog(true)}
@@ -160,6 +156,43 @@ export function PlayerStatus({ player }: PlayerStatusProps) {
 							Redeem Ring ($159)
 						</Button>
 					</div>
+					<div className="grid grid-cols-2 gap-4">
+						<div className="space-y-2">
+							<div className="text-sm font-medium">
+								Loan: ${player.loanBalance}
+							</div>
+							<div className="text-sm font-medium">
+								Wedding Ring: {player.ringPawned ? "Pawned" : "Available"}
+							</div>
+							<div className="text-sm font-medium">
+								Employment: {player.isEmployed ? "Employed" : "Unemployed"}
+							</div>
+						</div>
+
+						{/* Hits Display */}
+						<div className="space-y-2">
+							{/* Family Hits - always show, greyed out if converted to health */}
+							<HitsDisplay
+								current={player.familyHits}
+								label="Family"
+								hitType="family"
+								showGreyedOut={player.healthHits > 0 && player.familyHits === 3}
+							/>
+
+							{/* Health Hits - always show, greyed out if converted to job */}
+							<HitsDisplay
+								current={player.healthHits}
+								label="Health"
+								hitType="health"
+								showGreyedOut={player.jobHits > 0 && player.healthHits === 3}
+							/>
+
+							{/* Job Hits - always show */}
+							<HitsDisplay current={player.jobHits} label="Job" hitType="job" />
+						</div>
+					</div>
+
+					{/* Action Buttons */}
 				</CardContent>
 			</Card>
 

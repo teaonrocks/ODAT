@@ -269,19 +269,38 @@ export default function PlayerPage() {
 		return (
 			<main className="min-h-screen p-2 sm:p-4 space-y-2 sm:space-y-4">
 				<div className="max-w-4xl mx-auto flex flex-col gap-2 sm:gap-4">
-					{/* Player Status - Top on all screen sizes */}
-					<PlayerStatusSection player={player} />
-
-					{/* Game Content - Bottom on all screen sizes */}
-					<div>
-						<GameOptions
-							session={session}
-							scenario={scenario}
-							player={player}
-							playerId={playerId}
-							makeChoice={makeChoice}
-						/>
-					</div>
+					{/* Conditional layout based on session preference */}
+					{session.layoutPreference === "status-top" ? (
+						<>
+							{/* Player Status - Top when preference is status-top */}
+							<PlayerStatusSection player={player} />
+							{/* Game Content - Bottom when preference is status-top */}
+							<div>
+								<GameOptions
+									session={session}
+									scenario={scenario}
+									player={player}
+									playerId={playerId}
+									makeChoice={makeChoice}
+								/>
+							</div>
+						</>
+					) : (
+						<>
+							{/* Game Content - Top when preference is choices-top (default) */}
+							<div>
+								<GameOptions
+									session={session}
+									scenario={scenario}
+									player={player}
+									playerId={playerId}
+									makeChoice={makeChoice}
+								/>
+							</div>
+							{/* Player Status - Bottom when preference is choices-top (default) */}
+							<PlayerStatusSection player={player} />
+						</>
+					)}
 				</div>
 			</main>
 		);
