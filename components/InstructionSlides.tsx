@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface InstructionSlidesProps {
@@ -16,7 +15,7 @@ interface InstructionSlide {
 	isAccumulatedExample?: boolean;
 }
 
-const instructionSlides = [
+const instructionSlides: InstructionSlide[] = [
 	{
 		title: "One Day at a Time",
 		content: [

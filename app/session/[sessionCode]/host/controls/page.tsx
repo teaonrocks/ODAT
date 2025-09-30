@@ -165,7 +165,7 @@ export default function PresenterControlsPage() {
 												Day Transition
 											</div>
 											<div className="text-xs text-gray-600">
-												Showing "Day {session.currentDay}" for{" "}
+												Showing &quot;Day {session.currentDay}&quot; for{" "}
 												{(session.transitionDuration ?? 3000) / 1000} seconds
 											</div>
 										</div>
@@ -437,7 +437,7 @@ export default function PresenterControlsPage() {
 												{(session.transitionDuration ?? 3000) / 1000} seconds
 											</div>
 											<div className="text-xs text-muted-foreground">
-												Time shown for "Day X" screen before scenarios
+												Time shown for &quot;Day X&quot; screen before scenarios
 											</div>
 										</div>
 
