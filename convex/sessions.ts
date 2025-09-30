@@ -46,12 +46,58 @@ export const getSessionByCode = query({
 	},
 });
 
+export const startInstructions = mutation({
+	args: { sessionId: v.id("sessions") },
+	handler: async (ctx, { sessionId }) => {
+		const session = await ctx.db.get(sessionId);
+		if (!session) throw new Error("Session not found");
+		await ctx.db.patch(sessionId, { gameState: "INSTRUCTIONS", currentDay: 0 });
+		return true;
+	},
+});
+
+export const nextInstruction = mutation({
+	args: { sessionId: v.id("sessions") },
+	handler: async (ctx, { sessionId }) => {
+		const session = await ctx.db.get(sessionId);
+		if (!session) throw new Error("Session not found");
+		const nextSlide = (session.currentDay ?? 0) + 1;
+		// We'll use currentDay to track instruction slide number (0-11)
+		await ctx.db.patch(sessionId, { currentDay: nextSlide });
+		return true;
+	},
+});
+
+export const prevInstruction = mutation({
+	args: { sessionId: v.id("sessions") },
+	handler: async (ctx, { sessionId }) => {
+		const session = await ctx.db.get(sessionId);
+		if (!session) throw new Error("Session not found");
+		const prevSlide = Math.max(0, (session.currentDay ?? 0) - 1);
+		await ctx.db.patch(sessionId, { currentDay: prevSlide });
+		return true;
+	},
+});
+
 export const startGame = mutation({
 	args: { sessionId: v.id("sessions") },
 	handler: async (ctx, { sessionId }) => {
 		const session = await ctx.db.get(sessionId);
 		if (!session) throw new Error("Session not found");
-		await ctx.db.patch(sessionId, { gameState: "IN_GAME", currentDay: 1 });
+		await ctx.db.patch(sessionId, {
+			gameState: "DAY_TRANSITION",
+			currentDay: 1,
+		});
+		return true;
+	},
+});
+
+export const showDayScenario = mutation({
+	args: { sessionId: v.id("sessions") },
+	handler: async (ctx, { sessionId }) => {
+		const session = await ctx.db.get(sessionId);
+		if (!session) throw new Error("Session not found");
+		await ctx.db.patch(sessionId, { gameState: "IN_GAME" });
 		return true;
 	},
 });
@@ -87,7 +133,10 @@ export const advanceDay = mutation({
 
 			await ctx.db.patch(sessionId, { gameState: "FINISHED" });
 		} else {
-			await ctx.db.patch(sessionId, { currentDay: nextDay });
+			await ctx.db.patch(sessionId, {
+				gameState: "DAY_TRANSITION",
+				currentDay: nextDay,
+			});
 		}
 		return true;
 	},
@@ -105,5 +154,21 @@ export const toggleLayoutPreference = mutation({
 
 		await ctx.db.patch(sessionId, { layoutPreference: newLayout });
 		return newLayout;
+	},
+});
+
+export const setTransitionDuration = mutation({
+	args: { sessionId: v.id("sessions"), duration: v.number() },
+	handler: async (ctx, { sessionId, duration }) => {
+		const session = await ctx.db.get(sessionId);
+		if (!session) throw new Error("Session not found");
+
+		// Validate duration (between 1 and 10 seconds)
+		if (duration < 1000 || duration > 10000) {
+			throw new Error("Duration must be between 1 and 10 seconds");
+		}
+
+		await ctx.db.patch(sessionId, { transitionDuration: duration });
+		return duration;
 	},
 });

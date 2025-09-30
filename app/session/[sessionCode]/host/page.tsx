@@ -1,10 +1,13 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import InstructionSlides from "@/components/InstructionSlides";
+import DayTransition from "@/components/DayTransition";
 
 function QRCodeCard({ sessionCode }: { sessionCode: string }) {
 	const [qrUrl, setQrUrl] = useState<string>("");
@@ -49,6 +52,25 @@ export default function HostPage() {
 		api.scenarios.get,
 		session?.currentDay ? { day: session.currentDay } : "skip"
 	);
+	const startInstructions = useMutation(api.sessions.startInstructions);
+	const showDayScenarioMutation = useMutation(api.sessions.showDayScenario);
+
+	// Auto-advance from day transition to scenario after configurable duration
+	useEffect(() => {
+		if (session?.gameState === "DAY_TRANSITION") {
+			const duration = session.transitionDuration ?? 3000; // Default to 3 seconds
+			const timer = setTimeout(() => {
+				showDayScenarioMutation({ sessionId: session._id });
+			}, duration);
+
+			return () => clearTimeout(timer);
+		}
+	}, [
+		session?.gameState,
+		session?._id,
+		session?.transitionDuration,
+		showDayScenarioMutation,
+	]);
 
 	if (session === undefined) return null; // loading
 	if (!session) {
@@ -95,15 +117,36 @@ export default function HostPage() {
 					<QRCodeCard sessionCode={session.sessionCode} />
 
 					<Card>
-						<CardContent className="py-6">
+						<CardContent className="py-6 space-y-4">
 							<p className="text-lg text-muted-foreground">
 								Waiting for players to join...
 							</p>
+							<Button
+								onClick={() => startInstructions({ sessionId: session._id })}
+								className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+							>
+								Start Instructions
+							</Button>
 						</CardContent>
 					</Card>
 				</div>
 			</main>
 		);
+	}
+
+	// Instructions slide
+	if (session.gameState === "INSTRUCTIONS") {
+		return (
+			<InstructionSlides
+				currentSlide={session.currentDay ?? 0}
+				totalSlides={13}
+			/>
+		);
+	}
+
+	// Day transition
+	if (session.gameState === "DAY_TRANSITION") {
+		return <DayTransition day={session.currentDay ?? 1} />;
 	}
 
 	// Game finished slide

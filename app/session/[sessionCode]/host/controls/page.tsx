@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Footer } from "@/components/Footer";
 
 export default function PresenterControlsPage() {
@@ -17,9 +23,18 @@ export default function PresenterControlsPage() {
 		session?._id ? { sessionId: session._id } : "skip"
 	);
 
+	const startInstructions = useMutation(api.sessions.startInstructions);
 	const startGame = useMutation(api.sessions.startGame);
 	const nextDay = useMutation(api.sessions.advanceDay);
+	const nextInstruction = useMutation(api.sessions.nextInstruction);
+	const prevInstruction = useMutation(api.sessions.prevInstruction);
+	const showDayScenario = useMutation(api.sessions.showDayScenario);
 	const toggleLayout = useMutation(api.sessions.toggleLayoutPreference);
+	const setTransitionDuration = useMutation(api.sessions.setTransitionDuration);
+
+	const [durationInput, setDurationInput] = useState("");
+	const [isTransitionSettingsOpen, setIsTransitionSettingsOpen] =
+		useState(false);
 
 	useEffect(() => {
 		if (session?.gameState === "IN_GAME") {
@@ -92,12 +107,78 @@ export default function PresenterControlsPage() {
 											disabled={!canStart}
 											onClick={async () => {
 												if (!session?._id) return;
-												await startGame({ sessionId: session._id });
+												await startInstructions({ sessionId: session._id });
 											}}
 											className="w-full"
 											size="lg"
 										>
-											🚀 Start Game
+											🎓 Start Instructions
+										</Button>
+									</div>
+								)}
+
+								{session.gameState === "INSTRUCTIONS" && (
+									<div className="space-y-3">
+										<div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+											<div className="text-sm font-medium text-blue-800">
+												Instructions in Progress
+											</div>
+											<div className="text-xs text-blue-600">
+												Slide {(session.currentDay ?? 0) + 1} of 13
+											</div>
+										</div>
+										<div className="flex gap-2">
+											<Button
+												disabled={(session.currentDay ?? 0) === 0}
+												onClick={async () => {
+													if (!session?._id) return;
+													await prevInstruction({ sessionId: session._id });
+												}}
+												variant="outline"
+												className="flex-1"
+											>
+												⬅️ Previous
+											</Button>
+											<Button
+												onClick={async () => {
+													if (!session?._id) return;
+													if ((session.currentDay ?? 0) >= 12) {
+														await startGame({ sessionId: session._id });
+													} else {
+														await nextInstruction({ sessionId: session._id });
+													}
+												}}
+												className="flex-1"
+											>
+												{(session.currentDay ?? 0) >= 12
+													? "🚀 Start Game"
+													: "➡️ Next"}
+											</Button>
+										</div>
+									</div>
+								)}
+
+								{session.gameState === "DAY_TRANSITION" && (
+									<div className="space-y-3">
+										<div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+											<div className="text-sm font-medium text-gray-800">
+												Day Transition
+											</div>
+											<div className="text-xs text-gray-600">
+												Showing "Day {session.currentDay}" for{" "}
+												{(session.transitionDuration ?? 3000) / 1000} seconds
+											</div>
+										</div>
+										<Button
+											onClick={async () => {
+												if (!session?._id) return;
+												await showDayScenario({ sessionId: session._id });
+											}}
+											className="w-full"
+											size="lg"
+											variant="outline"
+										>
+											⏭️ Skip to Scenario
 										</Button>
 									</div>
 								)}
@@ -112,13 +193,47 @@ export default function PresenterControlsPage() {
 												Day {session.currentDay} - Present scenario and advance
 												when ready
 											</div>
-											<div className="text-xs text-green-700 mt-1 font-medium">
-												{players?.filter((p) =>
-													p.choices?.some((c) => c.day === session.currentDay)
-												).length || 0}{" "}
-												of {players?.length || 0} players have made their choice
+										</div>
+
+										{/* Player Choice Counter */}
+										<div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+											<div className="text-center space-y-2">
+												<div className="text-sm font-medium text-gray-800">
+													Player Choices
+												</div>
+												<div className="text-3xl font-bold text-gray-900">
+													{players?.filter((p) =>
+														p.choices?.some((c) => c.day === session.currentDay)
+													).length || 0}
+													<span className="text-lg text-gray-600">
+														/{players?.length || 0}
+													</span>
+												</div>
+												<div className="text-xs text-gray-600">
+													players have made their choice
+												</div>
+												{/* Progress Bar */}
+												<div className="w-full bg-gray-200 rounded-full h-2">
+													<div
+														className="bg-gray-800 h-2 rounded-full transition-all duration-300"
+														style={{
+															width: `${
+																players?.length
+																	? (players.filter((p) =>
+																			p.choices?.some(
+																				(c) => c.day === session.currentDay
+																			)
+																		).length /
+																			players.length) *
+																		100
+																	: 0
+															}%`,
+														}}
+													></div>
+												</div>
 											</div>
 										</div>
+
 										<Button
 											onClick={async () => {
 												if (!session?._id) return;
@@ -287,6 +402,111 @@ export default function PresenterControlsPage() {
 								</Button>
 							</div>
 						</CardContent>
+					</Card>
+
+					{/* Transition Settings */}
+					<Card>
+						<Collapsible
+							open={isTransitionSettingsOpen}
+							onOpenChange={setIsTransitionSettingsOpen}
+						>
+							<CardHeader className="pb-3">
+								<CollapsibleTrigger asChild>
+									<div className="flex items-center justify-between cursor-pointer">
+										<div>
+											<CardTitle>Transition Settings</CardTitle>
+											<div className="text-sm text-muted-foreground">
+												Current: {(session.transitionDuration ?? 3000) / 1000}{" "}
+												seconds
+											</div>
+										</div>
+										<Button variant="ghost" size="sm" className="p-1 h-8 w-8">
+											{isTransitionSettingsOpen ? "▼" : "▶"}
+										</Button>
+									</div>
+								</CollapsibleTrigger>
+							</CardHeader>
+							<CollapsibleContent>
+								<CardContent>
+									<div className="space-y-4">
+										<div className="p-3 bg-muted/50 rounded-lg">
+											<div className="text-sm font-medium mb-1">
+												Current Day Transition Duration
+											</div>
+											<div className="text-2xl font-bold">
+												{(session.transitionDuration ?? 3000) / 1000} seconds
+											</div>
+											<div className="text-xs text-muted-foreground">
+												Time shown for "Day X" screen before scenarios
+											</div>
+										</div>
+
+										<div className="space-y-3">
+											<div className="text-sm font-medium">Quick Presets</div>
+											<div className="flex gap-2">
+												{[1, 2, 3, 5, 7, 10].map((seconds) => (
+													<Button
+														key={seconds}
+														variant={
+															(session.transitionDuration ?? 3000) / 1000 ===
+															seconds
+																? "default"
+																: "outline"
+														}
+														size="sm"
+														onClick={async () => {
+															if (!session?._id) return;
+															await setTransitionDuration({
+																sessionId: session._id,
+																duration: seconds * 1000,
+															});
+														}}
+													>
+														{seconds}s
+													</Button>
+												))}
+											</div>
+										</div>
+
+										<div className="space-y-3">
+											<div className="text-sm font-medium">Custom Duration</div>
+											<div className="flex items-center gap-2">
+												<Input
+													type="number"
+													placeholder="Enter seconds (1-10)"
+													value={durationInput}
+													onChange={(e) => setDurationInput(e.target.value)}
+													className="flex-1"
+													min="1"
+													max="10"
+												/>
+												<Button
+													disabled={
+														!durationInput || isNaN(Number(durationInput))
+													}
+													onClick={async () => {
+														if (!session?._id || !durationInput) return;
+														const seconds = Number(durationInput);
+														if (seconds >= 1 && seconds <= 10) {
+															await setTransitionDuration({
+																sessionId: session._id,
+																duration: seconds * 1000,
+															});
+															setDurationInput("");
+														}
+													}}
+												>
+													Apply
+												</Button>
+											</div>
+											<div className="text-xs text-muted-foreground">
+												Set any duration between 1-10 seconds
+											</div>
+										</div>
+									</div>
+								</CardContent>
+							</CollapsibleContent>
+						</Collapsible>
 					</Card>
 				</div>
 			</main>

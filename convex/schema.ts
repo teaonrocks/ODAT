@@ -27,10 +27,11 @@ export default defineSchema({
 
 	sessions: defineTable({
 		sessionCode: v.string(),
-		gameState: v.string(), // "LOBBY" | "IN_GAME" | "FINISHED"
+		gameState: v.string(), // "LOBBY" | "INSTRUCTIONS" | "DAY_TRANSITION" | "IN_GAME" | "FINISHED"
 		currentDay: v.number(), // 0..14
 		hostId: v.string(),
 		layoutPreference: v.optional(v.string()), // "choices-top" | "status-top"
+		transitionDuration: v.optional(v.number()), // Duration in milliseconds for day transitions (default: 3000)
 	}).index("by_code", ["sessionCode"]),
 
 	players: defineTable({
