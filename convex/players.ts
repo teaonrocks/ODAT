@@ -247,3 +247,17 @@ export const redeemRing = mutation({
 		return { ringPawned: false, resources: newResources };
 	},
 });
+
+export const assignToGroup = mutation({
+	args: { 
+		playerId: v.id("players"),
+		groupId: v.optional(v.string()),
+	},
+	handler: async (ctx, { playerId, groupId }) => {
+		const player = await ctx.db.get(playerId);
+		if (!player) throw new Error("Player not found");
+
+		await ctx.db.patch(playerId, { groupId });
+		return true;
+	},
+});

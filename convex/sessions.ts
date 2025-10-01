@@ -172,3 +172,81 @@ export const setTransitionDuration = mutation({
 		return duration;
 	},
 });
+
+export const createGroup = mutation({
+	args: { 
+		sessionId: v.id("sessions"), 
+		name: v.string(),
+		color: v.string(),
+	},
+	handler: async (ctx, { sessionId, name, color }) => {
+		const session = await ctx.db.get(sessionId);
+		if (!session) throw new Error("Session not found");
+
+		const currentGroups = session.groups || [];
+		const groupId = crypto.randomUUID();
+		
+		const newGroup = {
+			id: groupId,
+			name,
+			color,
+		};
+
+		await ctx.db.patch(sessionId, { 
+			groups: [...currentGroups, newGroup] 
+		});
+		
+		return newGroup;
+	},
+});
+
+export const updateGroup = mutation({
+	args: { 
+		sessionId: v.id("sessions"), 
+		groupId: v.string(),
+		name: v.string(),
+		color: v.string(),
+	},
+	handler: async (ctx, { sessionId, groupId, name, color }) => {
+		const session = await ctx.db.get(sessionId);
+		if (!session) throw new Error("Session not found");
+
+		const currentGroups = session.groups || [];
+		const updatedGroups = currentGroups.map(group => 
+			group.id === groupId ? { ...group, name, color } : group
+		);
+
+		await ctx.db.patch(sessionId, { groups: updatedGroups });
+		return true;
+	},
+});
+
+export const deleteGroup = mutation({
+	args: { 
+		sessionId: v.id("sessions"), 
+		groupId: v.string(),
+	},
+	handler: async (ctx, { sessionId, groupId }) => {
+		const session = await ctx.db.get(sessionId);
+		if (!session) throw new Error("Session not found");
+
+		// Remove group from session
+		const currentGroups = session.groups || [];
+		const updatedGroups = currentGroups.filter(group => group.id !== groupId);
+		await ctx.db.patch(sessionId, { groups: updatedGroups });
+
+		// Remove group assignment from all players
+		const players = await ctx.db
+			.query("players")
+			.withIndex("by_session", (q) => q.eq("sessionId", sessionId))
+			.collect();
+
+		for (const player of players) {
+			if (player.groupId === groupId) {
+				await ctx.db.patch(player._id, { groupId: undefined });
+			}
+		}
+
+		return true;
+	},
+});

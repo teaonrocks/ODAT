@@ -32,6 +32,11 @@ export default defineSchema({
 		hostId: v.string(),
 		layoutPreference: v.optional(v.string()), // "choices-top" | "status-top"
 		transitionDuration: v.optional(v.number()), // Duration in milliseconds for day transitions (default: 3000)
+		groups: v.optional(v.array(v.object({
+			id: v.string(),
+			name: v.string(),
+			color: v.string(),
+		}))),
 	}).index("by_code", ["sessionCode"]),
 
 	players: defineTable({
@@ -45,6 +50,7 @@ export default defineSchema({
 		loanBalance: v.number(),
 		borrowCount: v.number(),
 		ringPawned: v.boolean(),
+		groupId: v.optional(v.string()),
 		choices: v.array(
 			v.object({
 				day: v.number(),

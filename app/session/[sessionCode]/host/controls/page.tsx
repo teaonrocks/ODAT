@@ -4,14 +4,22 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Footer } from "@/components/Footer";
 
 export default function PresenterControlsPage() {
@@ -31,10 +39,22 @@ export default function PresenterControlsPage() {
 	const showDayScenario = useMutation(api.sessions.showDayScenario);
 	const toggleLayout = useMutation(api.sessions.toggleLayoutPreference);
 	const setTransitionDuration = useMutation(api.sessions.setTransitionDuration);
+	const createGroup = useMutation(api.sessions.createGroup);
+	const updateGroup = useMutation(api.sessions.updateGroup);
+	const deleteGroup = useMutation(api.sessions.deleteGroup);
+	const assignPlayerToGroup = useMutation(api.players.assignToGroup);
 
 	const [durationInput, setDurationInput] = useState("");
 	const [isTransitionSettingsOpen, setIsTransitionSettingsOpen] =
 		useState(false);
+	const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
+	const [editingGroup, setEditingGroup] = useState<{
+		id?: string;
+		name: string;
+		color: string;
+	} | null>(null);
+	const [groupName, setGroupName] = useState("");
+	const [groupColor, setGroupColor] = useState("#3B82F6");
 
 	useEffect(() => {
 		if (session?.gameState === "IN_GAME") {
@@ -43,6 +63,91 @@ export default function PresenterControlsPage() {
 	}, [session]);
 
 	const canStart = useMemo(() => (players?.length ?? 0) > 0, [players]);
+
+	const predefinedColors = [
+		"#3B82F6", // blue
+		"#EF4444", // red
+		"#10B981", // green
+		"#F59E0B", // yellow
+		"#8B5CF6", // purple
+		"#F97316", // orange
+		"#EC4899", // pink
+		"#6B7280", // gray
+	];
+
+	const handleCreateGroup = async () => {
+		if (!session?._id || !groupName.trim()) return;
+		
+		try {
+			await createGroup({
+				sessionId: session._id,
+				name: groupName.trim(),
+				color: groupColor,
+			});
+			setGroupName("");
+			setGroupColor("#3B82F6");
+			setIsGroupDialogOpen(false);
+		} catch (error) {
+			console.error("Failed to create group:", error);
+		}
+	};
+
+	const handleUpdateGroup = async () => {
+		if (!session?._id || !editingGroup?.id || !groupName.trim()) return;
+		
+		try {
+			await updateGroup({
+				sessionId: session._id,
+				groupId: editingGroup.id,
+				name: groupName.trim(),
+				color: groupColor,
+			});
+			setEditingGroup(null);
+			setGroupName("");
+			setGroupColor("#3B82F6");
+			setIsGroupDialogOpen(false);
+		} catch (error) {
+			console.error("Failed to update group:", error);
+		}
+	};
+
+	const handleDeleteGroup = async (groupId: string) => {
+		if (!session?._id) return;
+		
+		try {
+			await deleteGroup({
+				sessionId: session._id,
+				groupId,
+			});
+		} catch (error) {
+			console.error("Failed to delete group:", error);
+		}
+	};
+
+	const handleAssignPlayerToGroup = async (playerId: string, groupId?: string) => {
+		try {
+			await assignPlayerToGroup({
+				playerId: playerId as Id<"players">,
+				groupId,
+			});
+		} catch (error) {
+			console.error("Failed to assign player to group:", error);
+		}
+	};
+
+	const openCreateGroupDialog = () => {
+		setEditingGroup(null);
+		setGroupName("");
+		setGroupColor("#3B82F6");
+		setIsGroupDialogOpen(true);
+	};
+
+	const openEditGroupDialog = (group: { id: string; name: string; color: string }) => {
+		setEditingGroup(group);
+		setGroupName(group.name);
+		setGroupColor(group.color);
+		setIsGroupDialogOpen(true);
+	};
 
 	if (session === undefined) return null; // loading
 	if (!session) return <div className="p-6">Session not found.</div>;
@@ -109,7 +214,7 @@ export default function PresenterControlsPage() {
 												if (!session?._id) return;
 												await startInstructions({ sessionId: session._id });
 											}}
-											className="w-full"
+											className="w-full bg-green-500"
 											size="lg"
 										>
 											🎓 Start Instructions
@@ -286,7 +391,22 @@ export default function PresenterControlsPage() {
 											className="p-3 border border-border rounded-lg bg-muted/20"
 										>
 											<div className="flex justify-between items-start mb-2">
-												<div className="font-medium">{p.name}</div>
+												<div className="flex items-center gap-2">
+													<span className="font-medium">{p.name}</span>
+													{p.groupId && session.groups?.find(g => g.id === p.groupId) && (
+														<div className="flex items-center gap-1">
+															<div
+																className="w-3 h-3 rounded-full"
+																style={{
+																	backgroundColor: session.groups?.find(g => g.id === p.groupId)?.color || "#gray"
+																}}
+															></div>
+															<span className="text-xs text-muted-foreground">
+																{session.groups?.find(g => g.id === p.groupId)?.name}
+															</span>
+														</div>
+													)}
+												</div>
 												<div className="flex items-center gap-2">
 													{session.gameState === "IN_GAME" && (
 														<div
@@ -353,6 +473,122 @@ export default function PresenterControlsPage() {
 							</CardContent>
 						</Card>
 					</div>
+
+					{/* Group Management */}
+					{session.gameState === "LOBBY" && (
+						<Card>
+							<CardHeader>
+								<CardTitle className="flex items-center justify-between">
+									<span>Group Management</span>
+									<Button onClick={openCreateGroupDialog} size="sm">
+										➕ Create Group
+									</Button>
+								</CardTitle>
+							</CardHeader>
+							<CardContent>
+								{session.groups && session.groups.length > 0 ? (
+									<div className="space-y-4">
+										<div className="grid gap-3">
+											{session.groups.map((group) => (
+												<div
+													key={group.id}
+													className="flex items-center justify-between p-3 border rounded-lg"
+												>
+													<div className="flex items-center gap-3">
+														<div
+															className="w-4 h-4 rounded-full"
+															style={{ backgroundColor: group.color }}
+														></div>
+														<span className="font-medium">{group.name}</span>
+														<span className="text-sm text-muted-foreground">
+															({players?.filter(p => p.groupId === group.id).length || 0} players)
+														</span>
+													</div>
+													<div className="flex gap-2">
+														<Button
+															variant="outline"
+															size="sm"
+															onClick={() => openEditGroupDialog(group)}
+														>
+															✏️ Edit
+														</Button>
+														<Button
+															variant="outline"
+															size="sm"
+															onClick={() => handleDeleteGroup(group.id)}
+														>
+															🗑️ Delete
+														</Button>
+													</div>
+												</div>
+											))}
+										</div>
+
+										{players && players.length > 0 && (
+											<div className="mt-6">
+												<h4 className="font-medium mb-3">Assign Players to Groups</h4>
+												<div className="space-y-2">
+													{players.map((player) => (
+														<div
+															key={player._id}
+															className="flex items-center justify-between p-2 border rounded"
+														>
+															<div className="flex items-center gap-2">
+																<span className="font-medium">{player.name}</span>
+																{player.groupId && (
+																	<div className="flex items-center gap-1">
+																		<div
+																			className="w-3 h-3 rounded-full"
+																			style={{
+																				backgroundColor: session.groups?.find(g => g.id === player.groupId)?.color || "#gray"
+																			}}
+																		></div>
+																		<span className="text-sm text-muted-foreground">
+																			{session.groups?.find(g => g.id === player.groupId)?.name || "Unknown"}
+																		</span>
+																	</div>
+																)}
+															</div>
+															<div className="flex gap-1">
+																<Button
+																	variant="outline"
+																	size="sm"
+																	onClick={() => handleAssignPlayerToGroup(player._id, undefined)}
+																	disabled={!player.groupId}
+																>
+																	Clear
+																</Button>
+																{session.groups?.map((group) => (
+																	<Button
+																		key={group.id}
+																		variant={player.groupId === group.id ? "default" : "outline"}
+																		size="sm"
+																		onClick={() => handleAssignPlayerToGroup(player._id, group.id)}
+																		style={{
+																			backgroundColor: player.groupId === group.id ? group.color : undefined,
+																			borderColor: group.color,
+																		}}
+																	>
+																		{group.name}
+																	</Button>
+																))}
+															</div>
+														</div>
+													))}
+												</div>
+											</div>
+										)}
+									</div>
+								) : (
+									<div className="text-center py-8 text-muted-foreground">
+										<div className="text-4xl mb-2">👥</div>
+										<div className="text-sm">No groups created yet</div>
+										<div className="text-xs">Create groups to organize players before starting</div>
+									</div>
+								)}
+							</CardContent>
+						</Card>
+					)}
 
 					{/* Quick Actions */}
 					<Card>
@@ -510,6 +746,66 @@ export default function PresenterControlsPage() {
 					</Card>
 				</div>
 			</main>
+
+			{/* Group Creation/Edit Dialog */}
+			<Dialog open={isGroupDialogOpen} onOpenChange={setIsGroupDialogOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							{editingGroup ? "Edit Group" : "Create New Group"}
+						</DialogTitle>
+					</DialogHeader>
+					<div className="space-y-4 p-4">
+						<div className="space-y-2">
+							<Label htmlFor="groupName">Group Name</Label>
+							<Input
+								id="groupName"
+								value={groupName}
+								onChange={(e) => setGroupName(e.target.value)}
+								placeholder="Enter group name"
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label>Group Color</Label>
+							<div className="flex gap-2 flex-wrap">
+								{predefinedColors.map((color) => (
+									<button
+										key={color}
+										className={`w-8 h-8 rounded-full border-2 ${
+											groupColor === color ? "border-gray-800" : "border-gray-300"
+										}`}
+										style={{ backgroundColor: color }}
+										onClick={() => setGroupColor(color)}
+									/>
+								))}
+							</div>
+							<Input
+								type="color"
+								value={groupColor}
+								onChange={(e) => setGroupColor(e.target.value)}
+								className="w-full h-10"
+							/>
+						</div>
+						<div className="flex gap-2 pt-4">
+							<Button
+								onClick={() => setIsGroupDialogOpen(false)}
+								variant="outline"
+								className="flex-1"
+							>
+								Cancel
+							</Button>
+							<Button
+								onClick={editingGroup ? handleUpdateGroup : handleCreateGroup}
+								disabled={!groupName.trim()}
+								className="flex-1"
+							>
+								{editingGroup ? "Update Group" : "Create Group"}
+							</Button>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
+
 			<Footer />
 		</div>
 	);
