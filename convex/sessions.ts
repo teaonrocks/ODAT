@@ -30,6 +30,7 @@ export const create = mutation({
 			gameState: "LOBBY",
 			currentDay: 0,
 			hostId,
+			hideHits: false,
 		});
 		return { sessionCode: code, hostId } as const;
 	},
@@ -97,8 +98,37 @@ export const showDayScenario = mutation({
 	handler: async (ctx, { sessionId }) => {
 		const session = await ctx.db.get(sessionId);
 		if (!session) throw new Error("Session not found");
-		await ctx.db.patch(sessionId, { gameState: "IN_GAME" });
+		await ctx.db.patch(sessionId, {
+			gameState: "IN_GAME",
+			currentSubPage: 0, // Reset sub-page counter when showing scenario
+		});
 		return true;
+	},
+});
+
+export const showDayResult = mutation({
+	args: { sessionId: v.id("sessions") },
+	handler: async (ctx, { sessionId }) => {
+		const session = await ctx.db.get(sessionId);
+		if (!session) throw new Error("Session not found");
+
+		await ctx.db.patch(sessionId, {
+			gameState: "DAY_RESULT",
+			currentSubPage: 0,
+		});
+		return true;
+	},
+});
+
+export const nextSubPage = mutation({
+	args: { sessionId: v.id("sessions") },
+	handler: async (ctx, { sessionId }) => {
+		const session = await ctx.db.get(sessionId);
+		if (!session) throw new Error("Session not found");
+
+		const nextSubPage = (session.currentSubPage ?? 0) + 1;
+		await ctx.db.patch(sessionId, { currentSubPage: nextSubPage });
+		return nextSubPage;
 	},
 });
 
@@ -157,6 +187,17 @@ export const toggleLayoutPreference = mutation({
 	},
 });
 
+export const setHideHits = mutation({
+	args: { sessionId: v.id("sessions"), hideHits: v.boolean() },
+	handler: async (ctx, { sessionId, hideHits }) => {
+		const session = await ctx.db.get(sessionId);
+		if (!session) throw new Error("Session not found");
+
+		await ctx.db.patch(sessionId, { hideHits });
+		return hideHits;
+	},
+});
+
 export const setTransitionDuration = mutation({
 	args: { sessionId: v.id("sessions"), duration: v.number() },
 	handler: async (ctx, { sessionId, duration }) => {
@@ -174,8 +215,8 @@ export const setTransitionDuration = mutation({
 });
 
 export const createGroup = mutation({
-	args: { 
-		sessionId: v.id("sessions"), 
+	args: {
+		sessionId: v.id("sessions"),
 		name: v.string(),
 		color: v.string(),
 	},
@@ -185,24 +226,24 @@ export const createGroup = mutation({
 
 		const currentGroups = session.groups || [];
 		const groupId = crypto.randomUUID();
-		
+
 		const newGroup = {
 			id: groupId,
 			name,
 			color,
 		};
 
-		await ctx.db.patch(sessionId, { 
-			groups: [...currentGroups, newGroup] 
+		await ctx.db.patch(sessionId, {
+			groups: [...currentGroups, newGroup],
 		});
-		
+
 		return newGroup;
 	},
 });
 
 export const updateGroup = mutation({
-	args: { 
-		sessionId: v.id("sessions"), 
+	args: {
+		sessionId: v.id("sessions"),
 		groupId: v.string(),
 		name: v.string(),
 		color: v.string(),
@@ -212,7 +253,7 @@ export const updateGroup = mutation({
 		if (!session) throw new Error("Session not found");
 
 		const currentGroups = session.groups || [];
-		const updatedGroups = currentGroups.map(group => 
+		const updatedGroups = currentGroups.map((group) =>
 			group.id === groupId ? { ...group, name, color } : group
 		);
 
@@ -222,8 +263,8 @@ export const updateGroup = mutation({
 });
 
 export const deleteGroup = mutation({
-	args: { 
-		sessionId: v.id("sessions"), 
+	args: {
+		sessionId: v.id("sessions"),
 		groupId: v.string(),
 	},
 	handler: async (ctx, { sessionId, groupId }) => {
@@ -232,7 +273,7 @@ export const deleteGroup = mutation({
 
 		// Remove group from session
 		const currentGroups = session.groups || [];
-		const updatedGroups = currentGroups.filter(group => group.id !== groupId);
+		const updatedGroups = currentGroups.filter((group) => group.id !== groupId);
 		await ctx.db.patch(sessionId, { groups: updatedGroups });
 
 		// Remove group assignment from all players

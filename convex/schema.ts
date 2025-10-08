@@ -3,40 +3,51 @@ import { v } from "convex/values";
 
 export default defineSchema({
 	scenarios: defineTable({
-		day: v.number(),
-		prompt: v.string(),
-		optionA_text: v.string(),
-		optionB_text: v.string(),
+		day: v.float64(),
 		optionA_consequence: v.object({
-			resourceChange: v.number(),
+			familyHits: v.optional(v.float64()),
+			healthHits: v.optional(v.float64()),
+			jobHits: v.optional(v.float64()),
 			narrative: v.string(),
-			familyHits: v.optional(v.number()),
-			healthHits: v.optional(v.number()),
-			jobHits: v.optional(v.number()),
-			removeFamilyHits: v.optional(v.number()),
+			removeFamilyHits: v.optional(v.float64()),
+			resourceChange: v.float64(),
 		}),
+		optionA_text: v.string(),
 		optionB_consequence: v.object({
-			resourceChange: v.number(),
+			familyHits: v.optional(v.float64()),
+			healthHits: v.optional(v.float64()),
+			jobHits: v.optional(v.float64()),
 			narrative: v.string(),
-			familyHits: v.optional(v.number()),
-			healthHits: v.optional(v.number()),
-			jobHits: v.optional(v.number()),
-			removeFamilyHits: v.optional(v.number()),
+			removeFamilyHits: v.optional(v.float64()),
+			resourceChange: v.float64(),
 		}),
+		optionB_text: v.string(),
+		prompt: v.string(),
+		subPages: v.optional(
+			v.array(
+				v.object({ content: v.string(), title: v.string() })
+			)
+		),
 	}).index("by_day", ["day"]),
 
 	sessions: defineTable({
 		sessionCode: v.string(),
-		gameState: v.string(), // "LOBBY" | "INSTRUCTIONS" | "DAY_TRANSITION" | "IN_GAME" | "FINISHED"
+		gameState: v.string(), // "LOBBY" | "INSTRUCTIONS" | "DAY_TRANSITION" | "IN_GAME" | "DAY_RESULT" | "FINISHED"
 		currentDay: v.number(), // 0..14
+		currentSubPage: v.optional(v.number()), // For sub-pages like day 1.1, 1.2, etc.
 		hostId: v.string(),
 		layoutPreference: v.optional(v.string()), // "choices-top" | "status-top"
-		transitionDuration: v.optional(v.number()), // Duration in milliseconds for day transitions (default: 3000)
-		groups: v.optional(v.array(v.object({
-			id: v.string(),
-			name: v.string(),
-			color: v.string(),
-		}))),
+		transitionDuration: v.optional(v.number()), // Duration in milliseconds for day transitions (default: 1000)
+		hideHits: v.optional(v.boolean()),
+		groups: v.optional(
+			v.array(
+				v.object({
+					id: v.string(),
+					name: v.string(),
+					color: v.string(),
+				})
+			)
+		),
 	}).index("by_code", ["sessionCode"]),
 
 	players: defineTable({

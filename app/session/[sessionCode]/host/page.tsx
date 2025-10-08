@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import InstructionSlides from "@/components/InstructionSlides";
 import DayTransition from "@/components/DayTransition";
+import DayResult from "@/components/DayResult";
 
 function QRCodeCard({ sessionCode }: { sessionCode: string }) {
 	const [qrUrl, setQrUrl] = useState<string>("");
@@ -53,23 +54,33 @@ export default function HostPage() {
 		session?.currentDay ? { day: session.currentDay } : "skip"
 	);
 	const startInstructions = useMutation(api.sessions.startInstructions);
-	const showDayScenarioMutation = useMutation(api.sessions.showDayScenario);
+	const showDayScenario = useMutation(api.sessions.showDayScenario);
 
 	// Auto-advance from day transition to scenario after configurable duration
 	useEffect(() => {
-		if (session?.gameState === "DAY_TRANSITION") {
-			const duration = session.transitionDuration ?? 3000; // Default to 3 seconds
+		if (session?.gameState === "DAY_TRANSITION" && session?._id) {
+			const duration = session.transitionDuration ?? 1000; // Default to 1 second
+			console.log(
+				`Day ${session.currentDay}: Starting ${duration}ms transition timer...`
+			);
 			const timer = setTimeout(() => {
-				showDayScenarioMutation({ sessionId: session._id });
+				console.log(
+					`Day ${session.currentDay}: Transition complete, showing scenario`
+				);
+				showDayScenario({ sessionId: session._id });
 			}, duration);
 
-			return () => clearTimeout(timer);
+			return () => {
+				console.log(`Day ${session.currentDay}: Cleanup transition timer`);
+				clearTimeout(timer);
+			};
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		session?.gameState,
 		session?._id,
 		session?.transitionDuration,
-		showDayScenarioMutation,
+		session?.currentDay,
 	]);
 
 	if (session === undefined) return null; // loading
@@ -149,6 +160,16 @@ export default function HostPage() {
 		return <DayTransition day={session.currentDay ?? 1} />;
 	}
 
+	// Day result sub-pages
+	if (session.gameState === "DAY_RESULT" && scenario?.subPages) {
+		const currentSubPage = session.currentSubPage ?? 0;
+		const subPage = scenario.subPages[currentSubPage];
+
+		if (subPage) {
+			return <DayResult title={subPage.title} content={subPage.content} />;
+		}
+	}
+
 	// Game finished slide
 	if (session.gameState === "FINISHED") {
 		return (
@@ -157,20 +178,12 @@ export default function HostPage() {
 					<Card>
 						<CardHeader className="pb-8">
 							<CardTitle className="text-4xl sm:text-6xl font-bold">
-								Game Complete!
+								End of two weeks
 							</CardTitle>
 							<p className="text-xl sm:text-2xl text-muted-foreground mt-4">
-								Great job everyone!
+								You need to repay your loans and redeem your wedding ring.
 							</p>
 						</CardHeader>
-					</Card>
-
-					<Card>
-						<CardContent className="py-6">
-							<p className="text-lg text-muted-foreground">
-								Check your individual results to see how you did.
-							</p>
-						</CardContent>
 					</Card>
 				</div>
 			</main>
@@ -212,7 +225,7 @@ export default function HostPage() {
 								<CardTitle className="flex items-center gap-2"></CardTitle>
 							</CardHeader>
 							<CardContent className="flex-1 flex flex-col justify-between space-y-4">
-								<p className="text-base sm:text-2xl leading-relaxed text-black text-center">
+								<p className="text-base sm:text-3xl leading-relaxed text-white text-center h-full">
 									{scenario.optionA_text}
 								</p>
 								<div className="text-right">
@@ -229,7 +242,7 @@ export default function HostPage() {
 						</Card>
 
 						{/* Option B - Yellow */}
-						<Card className="bg-yellow-600 flex flex-col">
+						<Card className="bg-yellow-500 flex flex-col">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
 									{/* <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-lg font-bold">
@@ -238,7 +251,7 @@ export default function HostPage() {
 								</CardTitle>
 							</CardHeader>
 							<CardContent className="flex-1 flex flex-col justify-between space-y-4">
-								<p className="text-base sm:text-2xl leading-relaxed text-black text-center">
+								<p className="text-base sm:text-3xl leading-relaxed text-white text-center ">
 									{scenario.optionB_text}
 								</p>
 								<div className="text-right">
@@ -256,6 +269,7 @@ export default function HostPage() {
 					</div>
 
 					{/* Instructions */}
+
 					{/* <Card>
 						<CardContent className="text-center py-6">
 							<p className="text-base sm:text-lg text-muted-foreground">

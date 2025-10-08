@@ -19,7 +19,7 @@ const instructionSlides: InstructionSlide[] = [
 	{
 		title: "One Day at a Time",
 		content: [
-			"An experiential activity to build awareness of challenges faced by a low-income family.",
+			"An experiential activity to build awareness of challenges faced by a low-income family",
 		],
 	},
 	{
@@ -36,12 +36,9 @@ const instructionSlides: InstructionSlide[] = [
 	},
 	{
 		title: "The Challenge",
-		content: ["Can you make it through the next two weeks (14 days)?"],
-	},
-	{
-		title: "Instructions for the Activity",
 		content: [
-			"Follow the daily decisions and see how your choices affect your family's survival.",
+			"Can you make it through the next two weeks (14 days)?",
+
 			"Every decision matters when resources are limited.",
 		],
 	},
@@ -68,35 +65,34 @@ const instructionSlides: InstructionSlide[] = [
 		isAccumulatedExample: true,
 	},
 	{
-		title: "When Short on Cash",
+		title: "When short on cash",
 		content: [
 			"If funds are insufficient, you may:",
-			"1. Borrow money (max 3 times within 2 weeks)",
-			"2. Pawn a gold wedding ring (from late spouse)",
+			"1. Borrow money (up to 3 times within 2 weeks)",
+			"2. Pawn your gold wedding ring (from late spouse)",
 			"3. Choose the other option for that day",
 		],
 	},
 	{
 		title: "Repayment Terms",
 		content: [
-			"Financial obligations:",
 			"• Loans: 10% interest",
 			"• Ring redemption: 6% interest",
-			"• All borrowed amounts must be repaid at the end of two weeks",
-			"• Borrowing more increases total repayment",
+			"• All borrowed amounts must be repaid at the end of two weeks.",
+			"• The more you borrow, the more you will have to repay.",
 		],
 	},
 	{
-		title: "Before We Start...",
+		title: "Before we start...",
 		content: [
-			"Remember this is about understanding real challenges.",
-			"Make decisions thoughtfully.",
-			"Consider the difficult trade-offs families face every day.",
+			"close your eyes,",
+			"take a deep breath,",
+			"and put on the hat of a single parent with two school-going children.",
 		],
 	},
 	{
-		title: "Let's Begin!",
-		content: ["Let's take it one day at a time.", "All the best!"],
+		title: "Let's take it one day at a time.",
+		content: ["All the best!"],
 	},
 ];
 
@@ -115,7 +111,7 @@ export default function InstructionSlides({
 						<div className="flex justify-center items-center">
 							<CardTitle className="text-2xl font-bold">
 								<p className="text-2xl font-bold">
-									Instructions {currentSlide + 1} of {totalSlides}
+									Instruction {currentSlide + 1} of {totalSlides}
 								</p>
 							</CardTitle>
 						</div>
@@ -137,8 +133,8 @@ export default function InstructionSlides({
 										key={index}
 										className={
 											line.startsWith("•")
-												? "text-left max-w-3xl mx-auto"
-												: "text-center"
+												? "text-left max-w-3xl mx-auto mb-4"
+												: "text-center mb-4"
 										}
 									>
 										{line}
@@ -158,7 +154,7 @@ export default function InstructionSlides({
 								<CardTitle className="flex items-center gap-2"></CardTitle>
 							</CardHeader>
 							<CardContent className="flex-1 flex flex-col justify-between space-y-4">
-								<p className="text-base sm:text-2xl leading-relaxed text-black text-center">
+								<p className="text-base sm:text-3xl leading-relaxed text-white text-center">
 									Extract
 								</p>
 								<div className="text-right">
@@ -175,7 +171,7 @@ export default function InstructionSlides({
 								<CardTitle className="flex items-center gap-2"></CardTitle>
 							</CardHeader>
 							<CardContent className="flex-1 flex flex-col justify-between space-y-4">
-								<p className="text-base sm:text-2xl leading-relaxed text-black text-center">
+								<p className="text-base sm:text-3xl leading-relaxed text-white text-center">
 									Ignore
 								</p>
 								<div className="text-right">
@@ -192,26 +188,24 @@ export default function InstructionSlides({
 				{slide.isConsequenceExample && (
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 						{/* Health Hit Result */}
-						<Card className="bg-gray-800 flex flex-col">
-							<CardHeader>
-								<CardTitle className="flex items-center justify-center">
-									<span className="text-2xl font-bold text-white">Result</span>
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="flex-1 flex flex-col justify-center items-center space-y-4">
-								<div className="bg-red-500 text-white px-6 py-3 rounded-lg border-2 border-red-600">
-									<span className="text-2xl font-bold">Health Hit! ●</span>
+						<div className=" flex flex-col">
+							<div className="flex-1 flex flex-col justify-center items-end space-y-4">
+								<div className="flex items-center space-x-2">
+									<span className="text-white font-bold text-3xl">
+										Health Hit!
+									</span>
+									<div className="w-8 h-8 rounded-full bg-red-500"></div>
 								</div>
-							</CardContent>
-						</Card>
+							</div>
+						</div>
 
 						{/* Option B - Yellow (Ignore) - The chosen option */}
-						<Card className="bg-yellow-600 flex flex-col border-4 border-green-400">
+						<Card className="bg-yellow-600 flex flex-col border-8 border-green-400">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2"></CardTitle>
 							</CardHeader>
 							<CardContent className="flex-1 flex flex-col justify-between space-y-4">
-								<p className="text-base sm:text-2xl leading-relaxed text-black text-center">
+								<p className="text-base sm:text-3xl leading-relaxed text-white text-center">
 									Ignore
 								</p>
 								<div className="text-right">
@@ -236,11 +230,12 @@ export default function InstructionSlides({
 							</div>
 							<span className="text-white text-3xl">→</span>
 							<div className="flex items-center space-x-2">
-								<span className="text-white font-bold">+1 Health Hit</span>
+								<span className="text-white font-bold">1 Health Hit</span>
 								<div className="flex items-center space-x-1">
 									<div className="w-6 h-6 rounded-full bg-blue-500 opacity-30"></div>
 									<div className="w-6 h-6 rounded-full bg-blue-500 opacity-30"></div>
 									<div className="w-6 h-6 rounded-full bg-blue-500 opacity-30"></div>
+									<div> = </div>
 									<div className="w-6 h-6 rounded-full bg-red-500"></div>
 								</div>
 							</div>
@@ -255,11 +250,12 @@ export default function InstructionSlides({
 							</div>
 							<span className="text-white text-3xl">→</span>
 							<div className="flex items-center space-x-2">
-								<span className="text-white font-bold">+1 Job Hit</span>
+								<span className="text-white font-bold">1 Job Hit</span>
 								<div className="flex items-center space-x-1">
 									<div className="w-6 h-6 rounded-full bg-red-500 opacity-30"></div>
 									<div className="w-6 h-6 rounded-full bg-red-500 opacity-30"></div>
 									<div className="w-6 h-6 rounded-full bg-red-500 opacity-30"></div>
+									<div> = </div>
 									<div className="w-6 h-6 rounded-full bg-green-500"></div>
 								</div>
 							</div>
@@ -286,26 +282,6 @@ export default function InstructionSlides({
 						</div>
 					</div>
 				)}
-
-				{/* Progress Indicator */}
-				<Card>
-					<CardContent className="py-6">
-						<div className="flex justify-center space-x-2">
-							{instructionSlides.map((_, index) => (
-								<div
-									key={index}
-									className={`w-3 h-3 rounded-full ${
-										index === currentSlide
-											? "bg-blue-600"
-											: index < currentSlide
-												? "bg-blue-300"
-												: "bg-gray-300"
-									}`}
-								/>
-							))}
-						</div>
-					</CardContent>
-				</Card>
 			</div>
 		</main>
 	);

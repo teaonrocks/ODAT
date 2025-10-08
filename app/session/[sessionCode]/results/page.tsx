@@ -30,6 +30,8 @@ export default function ResultsPage() {
 	if (!session) return <div className="p-6">Session not found.</div>;
 	if (!player) return <div className="p-6">Player not found.</div>;
 
+	const hitsHidden = session.hideHits ?? false;
+
 	return (
 		<>
 			<main className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -37,10 +39,11 @@ export default function ResultsPage() {
 					{/* Celebration Header */}
 					<div className="space-y-4">
 						<h1 className="text-4xl md:text-6xl font-bold text-foreground">
-							Congratulations!
+							End of two weeks
+							{/* fix font */}
 						</h1>
 						<p className="text-xl md:text-2xl text-muted-foreground">
-							You made it through all 14 days
+							Do you think you can make it through another 14 days?
 						</p>
 					</div>
 
@@ -62,7 +65,9 @@ export default function ResultsPage() {
 						</div>
 
 						{/* Status Grid */}
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+						<div
+							className={`grid grid-cols-2 gap-6 ${hitsHidden ? "md:grid-cols-2" : "md:grid-cols-4"}`}
+						>
 							<div className="text-center">
 								<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
 									Employment
@@ -76,40 +81,54 @@ export default function ResultsPage() {
 								</div>
 							</div>
 
-							<div className="text-center">
-								<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-									Family Hits
-								</div>
-								<div className="text-2xl font-bold text-foreground mt-2">
-									{player.familyHits}
-								</div>
-							</div>
+							{!hitsHidden && (
+								<>
+									<div className="text-center">
+										<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+											Family Hits
+										</div>
+										<div className="text-2xl font-bold text-foreground mt-2">
+											{player.familyHits}
+										</div>
+									</div>
 
-							<div className="text-center">
-								<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-									Health Hits
-								</div>
-								<div className="text-2xl font-bold text-foreground mt-2">
-									{player.healthHits}
-								</div>
-							</div>
+									<div className="text-center">
+										<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+											Health Hits
+										</div>
+										<div className="text-2xl font-bold text-foreground mt-2">
+											{player.healthHits}
+										</div>
+									</div>
 
-							<div className="text-center">
-								<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-									Job Hits
-								</div>
-								<div className="text-2xl font-bold text-foreground mt-2">
-									{player.jobHits}
-								</div>
-							</div>
+									<div className="text-center">
+										<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+											Job Hits
+										</div>
+										<div className="text-2xl font-bold text-foreground mt-2">
+											{player.jobHits}
+										</div>
+									</div>
+								</>
+							)}
 						</div>
+
+						{hitsHidden && (
+							<div className="text-sm text-muted-foreground bg-muted/30 border border-muted-foreground/20 rounded-lg p-4">
+								Your facilitator has hidden hit counts for this session.
+							</div>
+						)}
 
 						{/* Wedding Ring Status */}
 						<div className="text-center pt-4 border-t border-muted-foreground/20">
 							<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
 								Wedding Ring
 							</div>
-							<div className="text-lg font-bold text-foreground mt-2">
+							<div
+								className={`text-lg font-bold mt-2 ${
+									player.ringPawned ? "text-red-600" : "text-green-600"
+								}`}
+							>
 								{player.ringPawned ? "💍 Pawned" : "💍 Safe"}
 							</div>
 						</div>

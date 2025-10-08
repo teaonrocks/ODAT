@@ -16,7 +16,7 @@ export const join = mutation({
 			familyHits: 0,
 			healthHits: 0,
 			jobHits: 0,
-			isEmployed: true,
+			isEmployed: false, // Players start unemployed on Day 1 (interview day)
 			loanBalance: 0,
 			borrowCount: 0,
 			ringPawned: false,
@@ -77,7 +77,12 @@ export const makeChoice = mutation({
 		let familyHits = (player.familyHits ?? 0) + (consequence.familyHits ?? 0);
 		let healthHits = (player.healthHits ?? 0) + (consequence.healthHits ?? 0);
 		let jobHits = (player.jobHits ?? 0) + (consequence.jobHits ?? 0);
-		let isEmployed = player.isEmployed ?? true;
+		let isEmployed = player.isEmployed ?? false;
+
+		// Day 1 is the job interview - player gets employed after making their choice
+		if (day === 1) {
+			isEmployed = true;
+		}
 
 		// Handle removeFamilyHits
 		if (consequence.removeFamilyHits) {
@@ -249,7 +254,7 @@ export const redeemRing = mutation({
 });
 
 export const assignToGroup = mutation({
-	args: { 
+	args: {
 		playerId: v.id("players"),
 		groupId: v.optional(v.string()),
 	},

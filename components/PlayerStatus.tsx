@@ -17,6 +17,7 @@ type Player = Doc<"players">;
 
 interface PlayerStatusProps {
 	player: Player;
+	showHits?: boolean;
 }
 
 function HitsDisplay({
@@ -51,8 +52,8 @@ function HitsDisplay({
 	};
 
 	return (
-		<div className="flex items-center gap-2 ">
-			<span className="text-sm font-medium w-auto">{label} hits:</span>
+		<div className="flex items-center gap-2">
+			<span className="text-sm font-medium w-20">{label} Hit:</span>
 			<div className="flex gap-1">
 				{current === 0 ? (
 					<></>
@@ -69,7 +70,7 @@ function HitsDisplay({
 	);
 }
 
-export function PlayerStatus({ player }: PlayerStatusProps) {
+export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 	const [borrowDialog, setBorrowDialog] = useState(false);
 	const [repayDialog, setRepayDialog] = useState(false);
 
@@ -118,16 +119,17 @@ export function PlayerStatus({ player }: PlayerStatusProps) {
 	return (
 		<>
 			<Card className="w-full">
-				<CardContent className="space-y-4">
+				<CardContent className="space-y-6 p-6">
 					{/* Financial Status */}
-					<div className="text-2xl font-semibold">
+					<div className="text-3xl font-bold mb-4">
 						Cash: ${player.resources}
 					</div>
-					<div className="grid grid-cols-2 gap-2">
+
+					<div className="grid grid-cols-2 gap-3">
 						<Button
 							onClick={() => setBorrowDialog(true)}
 							disabled={player.borrowCount >= 3}
-							className="text-sm"
+							className="text-sm py-3"
 						>
 							Borrow Money ({player.borrowCount}/3)
 						</Button>
@@ -135,7 +137,7 @@ export function PlayerStatus({ player }: PlayerStatusProps) {
 						<Button
 							onClick={handlePawnRing}
 							disabled={player.ringPawned}
-							className="text-sm"
+							className="text-sm py-3"
 						>
 							{player.ringPawned ? "Ring Pawned" : "Pawn Ring ($150)"}
 						</Button>
@@ -143,7 +145,7 @@ export function PlayerStatus({ player }: PlayerStatusProps) {
 						<Button
 							onClick={() => setRepayDialog(true)}
 							disabled={player.loanBalance === 0}
-							className="text-sm"
+							className="text-sm py-3"
 						>
 							Repay Loan
 						</Button>
@@ -151,44 +153,75 @@ export function PlayerStatus({ player }: PlayerStatusProps) {
 						<Button
 							onClick={handleRedeemRing}
 							disabled={!player.ringPawned || player.resources < 159}
-							className="text-sm"
+							className="text-sm py-3"
 						>
 							Redeem Ring ($159)
 						</Button>
 					</div>
-					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<div className="text-sm font-medium">
+
+					<div className="grid grid-cols-2 gap-6 mt-6">
+						<div className="space-y-3">
+							<div className="text-sm font-medium py-1">
 								Loan: ${player.loanBalance}
 							</div>
-							<div className="text-sm font-medium">
-								Wedding Ring: {player.ringPawned ? "Pawned" : "Available"}
+							<div className="text-sm font-medium py-1">
+								Wedding Ring:{" "}
+								<span
+									className={
+										player.ringPawned ? "text-red-600" : "text-green-600"
+									}
+								>
+									{player.ringPawned ? "Pawned" : "Available"}
+								</span>
 							</div>
-							<div className="text-sm font-medium">
-								Employment: {player.isEmployed ? "Employed" : "Unemployed"}
+							<div className="text-sm font-medium py-1">
+								Employment:{" "}
+								<span
+									className={
+										player.isEmployed ? "text-green-600" : "text-red-600"
+									}
+								>
+									{player.isEmployed ? "Employed" : "Unemployed"}
+								</span>
 							</div>
 						</div>
 
 						{/* Hits Display */}
-						<div className="space-y-2">
-							{/* Family Hits - always show, greyed out if converted to health */}
-							<HitsDisplay
-								current={player.familyHits}
-								label="Family"
-								hitType="family"
-								showGreyedOut={player.healthHits > 0 && player.familyHits === 3}
-							/>
+						<div className="space-y-3">
+							{showHits ? (
+								<>
+									{/* Family Hits - always show, greyed out if converted to health */}
+									<HitsDisplay
+										current={player.familyHits}
+										label="Family"
+										hitType="family"
+										showGreyedOut={
+											player.healthHits > 0 && player.familyHits === 3
+										}
+									/>
 
-							{/* Health Hits - always show, greyed out if converted to job */}
-							<HitsDisplay
-								current={player.healthHits}
-								label="Health"
-								hitType="health"
-								showGreyedOut={player.jobHits > 0 && player.healthHits === 3}
-							/>
+									{/* Health Hits - always show, greyed out if converted to job */}
+									<HitsDisplay
+										current={player.healthHits}
+										label="Health"
+										hitType="health"
+										showGreyedOut={
+											player.jobHits > 0 && player.healthHits === 3
+										}
+									/>
 
-							{/* Job Hits - always show */}
-							<HitsDisplay current={player.jobHits} label="Job" hitType="job" />
+									{/* Job Hits - always show */}
+									<HitsDisplay
+										current={player.jobHits}
+										label="Job"
+										hitType="job"
+									/>
+								</>
+							) : (
+								<div className="p-3 rounded-lg bg-muted/40 text-sm text-muted-foreground border border-muted-foreground/20 text-center">
+									Hits are hidden by your facilitator right now.
+								</div>
+							)}
 						</div>
 					</div>
 

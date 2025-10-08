@@ -39,6 +39,10 @@ export const seed = mutation({
 				healthHits?: number;
 				jobHits?: number;
 			};
+			subPages?: Array<{
+				title: string;
+				content: string;
+			}>;
 		};
 
 		const scenarios: Scenario[] = [
@@ -56,6 +60,13 @@ export const seed = mutation({
 					narrative:
 						"You saved money but arrived tired. Still, you got the job!",
 				},
+				subPages: [
+					{
+						title: "Congratulations!",
+						content:
+							"You got the job! Starting tomorrow, you'll be employed and earning a weekly salary.",
+					},
+				],
 			},
 			{
 				day: 2,
@@ -106,6 +117,13 @@ export const seed = mutation({
 					narrative:
 						"You spent more upfront but took advantage of bulk savings.",
 				},
+				subPages: [
+					{
+						title: "Limited Cashflow",
+						content:
+							"Low-income families are often not able to take advantage of potential savings from shopping discounts because they have limited cashflow to purchase items in bulk.",
+					},
+				],
 			},
 			{
 				day: 5,
@@ -171,6 +189,13 @@ export const seed = mutation({
 					narrative:
 						"You received $300 and immediately paid $130 for overdue bills.",
 				},
+				subPages: [
+					{
+						title: "Loan & Ring Reminder",
+						content:
+							"You could choose to repay your loan or redeem your wedding ring.\nHealth Hit! (if you have outstanding loans)\nNo consequences if you do not redeem your wedding ring at this point.",
+					},
+				],
 			},
 			{
 				day: 9,
@@ -189,6 +214,13 @@ export const seed = mutation({
 						"The 'need to belong' is often sacrificed to meet more immediate physical needs.",
 					familyHits: 1,
 				},
+				subPages: [
+					{
+						title: "Belonging Sacrificed",
+						content:
+							'Money is needed for children and youths to join their friends in social gatherings.\nThis "need to belong" is often sacrificed to meet the more visible and immediate physical needs.',
+					},
+				],
 			},
 			{
 				day: 10,
@@ -205,6 +237,13 @@ export const seed = mutation({
 					narrative:
 						"This seems cheaper now, but the stove is still broken and eating out is less healthy.",
 				},
+				subPages: [
+					{
+						title: "No Savings Cushion",
+						content:
+							"Low-income families have little or no savings to fall back on when they are faced with huge unforeseen expenses.\nThey often end up borrowing money to tide them over.",
+					},
+				],
 			},
 			{
 				day: 11,

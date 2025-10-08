@@ -26,6 +26,10 @@ export default function PresenterControlsPage() {
 	const { sessionCode } = useParams<{ sessionCode: string }>();
 	const router = useRouter();
 	const session = useQuery(api.sessions.getSessionByCode, { sessionCode });
+	const scenario = useQuery(
+		api.scenarios.get,
+		session?.currentDay ? { day: session.currentDay } : "skip"
+	);
 	const players = useQuery(
 		api.players.getForSession,
 		session?._id ? { sessionId: session._id } : "skip"
@@ -37,12 +41,14 @@ export default function PresenterControlsPage() {
 	const nextInstruction = useMutation(api.sessions.nextInstruction);
 	const prevInstruction = useMutation(api.sessions.prevInstruction);
 	const showDayScenario = useMutation(api.sessions.showDayScenario);
+	const showDayResult = useMutation(api.sessions.showDayResult);
+	const nextSubPage = useMutation(api.sessions.nextSubPage);
 	const toggleLayout = useMutation(api.sessions.toggleLayoutPreference);
+	const setHideHits = useMutation(api.sessions.setHideHits);
 	const setTransitionDuration = useMutation(api.sessions.setTransitionDuration);
 	const createGroup = useMutation(api.sessions.createGroup);
 	const updateGroup = useMutation(api.sessions.updateGroup);
 	const deleteGroup = useMutation(api.sessions.deleteGroup);
-	const assignPlayerToGroup = useMutation(api.players.assignToGroup);
 
 	const [durationInput, setDurationInput] = useState("");
 	const [isTransitionSettingsOpen, setIsTransitionSettingsOpen] =
@@ -55,6 +61,35 @@ export default function PresenterControlsPage() {
 	} | null>(null);
 	const [groupName, setGroupName] = useState("");
 	const [groupColor, setGroupColor] = useState("#3B82F6");
+
+	// Auto-advance from day transition to scenario after configurable duration
+	useEffect(() => {
+		if (session?.gameState === "DAY_TRANSITION" && session?._id) {
+			const duration = session.transitionDuration ?? 1000; // Default to 1 second
+			console.log(
+				`[Controls] Day ${session.currentDay}: Starting ${duration}ms transition timer...`
+			);
+			const timer = setTimeout(() => {
+				console.log(
+					`[Controls] Day ${session.currentDay}: Transition complete, showing scenario`
+				);
+				showDayScenario({ sessionId: session._id });
+			}, duration);
+
+			return () => {
+				console.log(
+					`[Controls] Day ${session.currentDay}: Cleanup transition timer`
+				);
+				clearTimeout(timer);
+			};
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		session?.gameState,
+		session?._id,
+		session?.transitionDuration,
+		session?.currentDay,
+	]);
 
 	useEffect(() => {
 		if (session?.gameState === "IN_GAME") {
@@ -77,7 +112,7 @@ export default function PresenterControlsPage() {
 
 	const handleCreateGroup = async () => {
 		if (!session?._id || !groupName.trim()) return;
-		
+
 		try {
 			await createGroup({
 				sessionId: session._id,
@@ -94,7 +129,7 @@ export default function PresenterControlsPage() {
 
 	const handleUpdateGroup = async () => {
 		if (!session?._id || !editingGroup?.id || !groupName.trim()) return;
-		
+
 		try {
 			await updateGroup({
 				sessionId: session._id,
@@ -113,7 +148,7 @@ export default function PresenterControlsPage() {
 
 	const handleDeleteGroup = async (groupId: string) => {
 		if (!session?._id) return;
-		
+
 		try {
 			await deleteGroup({
 				sessionId: session._id,
@@ -124,17 +159,6 @@ export default function PresenterControlsPage() {
 		}
 	};
 
-	const handleAssignPlayerToGroup = async (playerId: string, groupId?: string) => {
-		try {
-			await assignPlayerToGroup({
-				playerId: playerId as Id<"players">,
-				groupId,
-			});
-		} catch (error) {
-			console.error("Failed to assign player to group:", error);
-		}
-	};
-
 	const openCreateGroupDialog = () => {
 		setEditingGroup(null);
 		setGroupName("");
@@ -142,7 +166,11 @@ export default function PresenterControlsPage() {
 		setIsGroupDialogOpen(true);
 	};
 
-	const openEditGroupDialog = (group: { id: string; name: string; color: string }) => {
+	const openEditGroupDialog = (group: {
+		id: string;
+		name: string;
+		color: string;
+	}) => {
 		setEditingGroup(group);
 		setGroupName(group.name);
 		setGroupColor(group.color);
@@ -271,7 +299,7 @@ export default function PresenterControlsPage() {
 											</div>
 											<div className="text-xs text-gray-600">
 												Showing &quot;Day {session.currentDay}&quot; for{" "}
-												{(session.transitionDuration ?? 3000) / 1000} seconds
+												{(session.transitionDuration ?? 1000) / 1000} seconds
 											</div>
 										</div>
 										<Button
@@ -339,16 +367,66 @@ export default function PresenterControlsPage() {
 											</div>
 										</div>
 
-										<Button
-											onClick={async () => {
-												if (!session?._id) return;
-												await nextDay({ sessionId: session._id });
-											}}
-											className="w-full"
-											size="lg"
-										>
-											⏭️ Next Day
-										</Button>
+										<div className="space-y-2">
+											<Button
+												onClick={async () => {
+													if (!session?._id) return;
+													// If there are sub-pages, show them first; otherwise advance to next day
+													if (
+														scenario?.subPages &&
+														scenario.subPages.length > 0
+													) {
+														await showDayResult({ sessionId: session._id });
+													} else {
+														await nextDay({ sessionId: session._id });
+													}
+												}}
+												className="w-full"
+												size="lg"
+											>
+												⏭️ Next Day
+											</Button>
+										</div>
+									</div>
+								)}
+
+								{session.gameState === "DAY_RESULT" && (
+									<div className="space-y-3">
+										<div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+											<div className="text-sm font-medium text-purple-800">
+												Day {session.currentDay} Result
+											</div>
+											<div className="text-xs text-purple-600">
+												Sub-page {(session.currentSubPage ?? 0) + 1} of{" "}
+												{scenario?.subPages?.length ?? 0}
+											</div>
+										</div>
+
+										{scenario?.subPages &&
+										(session.currentSubPage ?? 0) <
+											scenario.subPages.length - 1 ? (
+											<Button
+												onClick={async () => {
+													if (!session?._id) return;
+													await nextSubPage({ sessionId: session._id });
+												}}
+												className="w-full"
+												size="lg"
+											>
+												➡️ Next Sub-page
+											</Button>
+										) : (
+											<Button
+												onClick={async () => {
+													if (!session?._id) return;
+													await nextDay({ sessionId: session._id });
+												}}
+												className="w-full"
+												size="lg"
+											>
+												⏭️ Next Day
+											</Button>
+										)}
 									</div>
 								)}
 
@@ -393,19 +471,27 @@ export default function PresenterControlsPage() {
 											<div className="flex justify-between items-start mb-2">
 												<div className="flex items-center gap-2">
 													<span className="font-medium">{p.name}</span>
-													{p.groupId && session.groups?.find(g => g.id === p.groupId) && (
-														<div className="flex items-center gap-1">
-															<div
-																className="w-3 h-3 rounded-full"
-																style={{
-																	backgroundColor: session.groups?.find(g => g.id === p.groupId)?.color || "#gray"
-																}}
-															></div>
-															<span className="text-xs text-muted-foreground">
-																{session.groups?.find(g => g.id === p.groupId)?.name}
-															</span>
-														</div>
-													)}
+													{p.groupId &&
+														session.groups?.find((g) => g.id === p.groupId) && (
+															<div className="flex items-center gap-1">
+																<div
+																	className="w-3 h-3 rounded-full"
+																	style={{
+																		backgroundColor:
+																			session.groups?.find(
+																				(g) => g.id === p.groupId
+																			)?.color || "#gray",
+																	}}
+																></div>
+																<span className="text-xs text-muted-foreground">
+																	{
+																		session.groups?.find(
+																			(g) => g.id === p.groupId
+																		)?.name
+																	}
+																</span>
+															</div>
+														)}
 												</div>
 												<div className="flex items-center gap-2">
 													{session.gameState === "IN_GAME" && (
@@ -501,7 +587,10 @@ export default function PresenterControlsPage() {
 														></div>
 														<span className="font-medium">{group.name}</span>
 														<span className="text-sm text-muted-foreground">
-															({players?.filter(p => p.groupId === group.id).length || 0} players)
+															(
+															{players?.filter((p) => p.groupId === group.id)
+																.length || 0}{" "}
+															players)
 														</span>
 													</div>
 													<div className="flex gap-2">
@@ -524,66 +613,23 @@ export default function PresenterControlsPage() {
 											))}
 										</div>
 
-										{players && players.length > 0 && (
-											<div className="mt-6">
-												<h4 className="font-medium mb-3">Assign Players to Groups</h4>
-												<div className="space-y-2">
-													{players.map((player) => (
-														<div
-															key={player._id}
-															className="flex items-center justify-between p-2 border rounded"
-														>
-															<div className="flex items-center gap-2">
-																<span className="font-medium">{player.name}</span>
-																{player.groupId && (
-																	<div className="flex items-center gap-1">
-																		<div
-																			className="w-3 h-3 rounded-full"
-																			style={{
-																				backgroundColor: session.groups?.find(g => g.id === player.groupId)?.color || "#gray"
-																			}}
-																		></div>
-																		<span className="text-sm text-muted-foreground">
-																			{session.groups?.find(g => g.id === player.groupId)?.name || "Unknown"}
-																		</span>
-																	</div>
-																)}
-															</div>
-															<div className="flex gap-1">
-																<Button
-																	variant="outline"
-																	size="sm"
-																	onClick={() => handleAssignPlayerToGroup(player._id, undefined)}
-																	disabled={!player.groupId}
-																>
-																	Clear
-																</Button>
-																{session.groups?.map((group) => (
-																	<Button
-																		key={group.id}
-																		variant={player.groupId === group.id ? "default" : "outline"}
-																		size="sm"
-																		onClick={() => handleAssignPlayerToGroup(player._id, group.id)}
-																		style={{
-																			backgroundColor: player.groupId === group.id ? group.color : undefined,
-																			borderColor: group.color,
-																		}}
-																	>
-																		{group.name}
-																	</Button>
-																))}
-															</div>
-														</div>
-													))}
-												</div>
+										<div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+											<div className="text-sm font-medium text-blue-800 mb-1">
+												Player Self-Selection
 											</div>
-										)}
+											<div className="text-xs text-blue-600">
+												Players will choose their own groups in the lobby before
+												instructions start.
+											</div>
+										</div>
 									</div>
 								) : (
 									<div className="text-center py-8 text-muted-foreground">
 										<div className="text-4xl mb-2">👥</div>
 										<div className="text-sm">No groups created yet</div>
-										<div className="text-xs">Create groups to organize players before starting</div>
+										<div className="text-xs">
+											Create groups to organize players before starting
+										</div>
 									</div>
 								)}
 							</CardContent>
@@ -636,6 +682,18 @@ export default function PresenterControlsPage() {
 										: "Choices Top"}
 									)
 								</Button>
+								<Button
+									variant={session.hideHits ? "default" : "outline"}
+									onClick={async () => {
+										if (!session?._id) return;
+										await setHideHits({
+											sessionId: session._id,
+											hideHits: !session.hideHits,
+										});
+									}}
+								>
+									{session.hideHits ? "👁️ Show Player Hits" : "🙈 Hide Player Hits"}
+								</Button>
 							</div>
 						</CardContent>
 					</Card>
@@ -652,7 +710,7 @@ export default function PresenterControlsPage() {
 										<div>
 											<CardTitle>Transition Settings</CardTitle>
 											<div className="text-sm text-muted-foreground">
-												Current: {(session.transitionDuration ?? 3000) / 1000}{" "}
+												Current: {(session.transitionDuration ?? 1000) / 1000}{" "}
 												seconds
 											</div>
 										</div>
@@ -670,7 +728,7 @@ export default function PresenterControlsPage() {
 												Current Day Transition Duration
 											</div>
 											<div className="text-2xl font-bold">
-												{(session.transitionDuration ?? 3000) / 1000} seconds
+												{(session.transitionDuration ?? 1000) / 1000} seconds
 											</div>
 											<div className="text-xs text-muted-foreground">
 												Time shown for &quot;Day X&quot; screen before scenarios
@@ -684,7 +742,7 @@ export default function PresenterControlsPage() {
 													<Button
 														key={seconds}
 														variant={
-															(session.transitionDuration ?? 3000) / 1000 ===
+															(session.transitionDuration ?? 1000) / 1000 ===
 															seconds
 																? "default"
 																: "outline"
@@ -772,7 +830,9 @@ export default function PresenterControlsPage() {
 									<button
 										key={color}
 										className={`w-8 h-8 rounded-full border-2 ${
-											groupColor === color ? "border-gray-800" : "border-gray-300"
+											groupColor === color
+												? "border-gray-800"
+												: "border-gray-300"
 										}`}
 										style={{ backgroundColor: color }}
 										onClick={() => setGroupColor(color)}

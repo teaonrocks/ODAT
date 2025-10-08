@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -8,6 +8,15 @@ import { Doc, Id } from "@/convex/_generated/dataModel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlayerStatus } from "@/components/PlayerStatus";
+import DayTransition from "@/components/DayTransition";
+import DayResult from "@/components/DayResult";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 type Session = Doc<"sessions">;
 type Player = Doc<"players">;
@@ -74,14 +83,10 @@ function GameOptions({
 			<CardContent className="space-y-3 sm:space-y-4">
 				{hasChosenToday ? (
 					<div className="space-y-3 sm:space-y-4">
-						<div className="p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
-							<h3 className="font-medium text-green-800 mb-2 text-sm sm:text-base text-center">
+						<div className="p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg flex justify-center items-center">
+							<h3 className="font-medium text-green-800 mb-2 text-sm sm:text-base ">
 								✓ Choice Submitted
 							</h3>
-							<p className="text-sm text-green-600 text-center leading-relaxed">
-								You selected{" "}
-								{todaysChoice?.choice === "A" ? "Option A" : "Option B"}
-							</p>
 						</div>
 						<p className="text-center text-muted-foreground text-xs sm:text-sm px-2">
 							Waiting for the host to advance to the next day...
@@ -176,10 +181,16 @@ function GameOptions({
 }
 
 // Component for displaying player status section
-function PlayerStatusSection({ player }: { player: Player }) {
+function PlayerStatusSection({
+	player,
+	showHits = true,
+}: {
+	player: Player;
+	showHits?: boolean;
+}) {
 	return (
 		<div>
-			<PlayerStatus player={player} />
+			<PlayerStatus player={player} showHits={showHits} />
 		</div>
 	);
 }
@@ -193,6 +204,9 @@ export default function PlayerPage() {
 		session?.currentDay ? { day: session.currentDay } : "skip"
 	);
 	const makeChoice = useMutation(api.players.makeChoice);
+	const assignToGroup = useMutation(api.players.assignToGroup);
+
+	const [selectedGroupId, setSelectedGroupId] = useState<string>("");
 
 	const playerId = useMemo(() => {
 		if (typeof window === "undefined") return null;
@@ -203,6 +217,20 @@ export default function PlayerPage() {
 		api.players.getById,
 		playerId ? { playerId: playerId as Id<"players"> } : "skip"
 	);
+
+	// Handle group selection
+	const handleGroupSelection = async (groupId: string) => {
+		if (!playerId) return;
+		try {
+			await assignToGroup({
+				playerId: playerId as Id<"players">,
+				groupId: groupId === "no-group" ? undefined : groupId,
+			});
+			setSelectedGroupId(groupId);
+		} catch (error) {
+			console.error("Failed to assign to group:", error);
+		}
+	};
 
 	useEffect(() => {
 		if (session?.gameState === "FINISHED" && playerId) {
@@ -222,14 +250,150 @@ export default function PlayerPage() {
 							Lobby — Code: {session.sessionCode}
 						</CardTitle>
 					</CardHeader>
-					<CardContent className="text-center py-6 sm:py-8">
-						<p className="text-base sm:text-lg text-muted-foreground">
-							Waiting for host to start…
-						</p>
+					<CardContent className="space-y-6">
+						{player && (
+							<div className="text-center">
+								<p className="text-base text-muted-foreground mb-4">
+									Welcome, <span className="font-medium">{player.name}</span>!
+								</p>
+
+								{/* Group Selection */}
+								{session.groups && session.groups.length > 0 && (
+									<div className="space-y-4">
+										<div className="text-sm font-medium text-left">
+											Choose your group:
+										</div>
+										<Select
+											value={player.groupId || "no-group"}
+											onValueChange={handleGroupSelection}
+										>
+											<SelectTrigger className="w-full">
+												<SelectValue placeholder="Select a group..." />
+											</SelectTrigger>
+											<SelectContent>
+												{session.groups.map((group) => (
+													<SelectItem key={group.id} value={group.id}>
+														<div className="flex items-center gap-2">
+															<div
+																className="w-3 h-3 rounded-full"
+																style={{ backgroundColor: group.color }}
+															></div>
+															<span>{group.name}</span>
+														</div>
+													</SelectItem>
+												))}
+												<SelectItem value="no-group">
+													<span className="text-muted-foreground">
+														No group
+													</span>
+												</SelectItem>
+											</SelectContent>
+										</Select>{" "}
+										{player.groupId && (
+											<div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+												<div
+													className="w-3 h-3 rounded-full"
+													style={{
+														backgroundColor:
+															session.groups?.find(
+																(g) => g.id === player.groupId
+															)?.color || "#gray",
+													}}
+												></div>
+												<span>
+													You&apos;re in:{" "}
+													{
+														session.groups?.find((g) => g.id === player.groupId)
+															?.name
+													}
+												</span>
+											</div>
+										)}
+									</div>
+								)}
+							</div>
+						)}
+
+						<div className="text-center py-4">
+							<p className="text-base sm:text-lg text-muted-foreground">
+								Waiting for host to start…
+							</p>
+						</div>
 					</CardContent>
 				</Card>
 			</main>
 		);
+	}
+
+	if (session.gameState === "INSTRUCTIONS") {
+		return (
+			<main className="min-h-screen flex items-center justify-center p-4">
+				<Card className="w-full max-w-xl">
+					<CardContent className="flex flex-col items-center justify-center py-16 space-y-8">
+						{/* Main Title */}
+						<div className="text-center space-y-4">
+							<h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight">
+								One Day
+							</h1>
+							<h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight">
+								at a Time
+							</h1>
+						</div>
+
+						{/* Subtitle */}
+						<div className="text-center space-y-2">
+							<p className="text-lg text-muted-foreground">
+								Instructions in progress
+							</p>
+							<p className="text-sm text-muted-foreground">
+								Please listen to your facilitator
+							</p>
+						</div>
+
+						{/* Player name if available */}
+						{player && (
+							<div className="text-center">
+								<p className="text-sm text-muted-foreground">
+									Welcome, <span className="font-medium">{player.name}</span>
+								</p>
+								{player.groupId &&
+									session.groups?.find((g) => g.id === player.groupId) && (
+										<div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-2">
+											<div
+												className="w-3 h-3 rounded-full"
+												style={{
+													backgroundColor:
+														session.groups?.find((g) => g.id === player.groupId)
+															?.color || "#gray",
+												}}
+											></div>
+											<span>
+												{
+													session.groups?.find((g) => g.id === player.groupId)
+														?.name
+												}
+											</span>
+										</div>
+									)}
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			</main>
+		);
+	}
+
+	if (session.gameState === "DAY_TRANSITION") {
+		return <DayTransition day={session.currentDay ?? 1} />;
+	}
+
+	if (session.gameState === "DAY_RESULT" && scenario?.subPages) {
+		const currentSubPage = session.currentSubPage ?? 0;
+		const subPage = scenario.subPages[currentSubPage];
+
+		if (subPage) {
+			return <DayResult title={subPage.title} content={subPage.content} />;
+		}
 	}
 
 	if (session.gameState === "IN_GAME") {
@@ -273,7 +437,10 @@ export default function PlayerPage() {
 					{session.layoutPreference === "status-top" ? (
 						<>
 							{/* Player Status - Top when preference is status-top */}
-							<PlayerStatusSection player={player} />
+							<PlayerStatusSection
+								player={player}
+								showHits={!session.hideHits}
+							/>
 							{/* Game Content - Bottom when preference is status-top */}
 							<div>
 								<GameOptions
@@ -298,7 +465,10 @@ export default function PlayerPage() {
 								/>
 							</div>
 							{/* Player Status - Bottom when preference is choices-top (default) */}
-							<PlayerStatusSection player={player} />
+							<PlayerStatusSection
+								player={player}
+								showHits={!session.hideHits}
+							/>
 						</>
 					)}
 				</div>
