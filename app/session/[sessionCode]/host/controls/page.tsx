@@ -43,7 +43,6 @@ export default function PresenterControlsPage() {
 	const showDayScenario = useMutation(api.sessions.showDayScenario);
 	const showDayResult = useMutation(api.sessions.showDayResult);
 	const nextSubPage = useMutation(api.sessions.nextSubPage);
-	const toggleLayout = useMutation(api.sessions.toggleLayoutPreference);
 	const setHideHits = useMutation(api.sessions.setHideHits);
 	const setTransitionDuration = useMutation(api.sessions.setTransitionDuration);
 	const createGroup = useMutation(api.sessions.createGroup);
@@ -159,14 +158,14 @@ export default function PresenterControlsPage() {
 		}
 	};
 
-	const openCreateGroupDialog = () => {
+	 const openCreateGroupDialog = () => {
 		setEditingGroup(null);
 		setGroupName("");
 		setGroupColor("#3B82F6");
 		setIsGroupDialogOpen(true);
 	};
 
-	const openEditGroupDialog = (group: {
+	 const openEditGroupDialog = (group: {
 		id: string;
 		name: string;
 		color: string;
@@ -668,19 +667,6 @@ export default function PresenterControlsPage() {
 									}
 								>
 									🔗 Copy Player Link
-								</Button>
-								<Button
-									variant="outline"
-									onClick={async () => {
-										if (!session?._id) return;
-										await toggleLayout({ sessionId: session._id });
-									}}
-								>
-									🔄 Toggle Layout (
-									{session.layoutPreference === "status-top"
-										? "Status Top"
-										: "Choices Top"}
-									)
 								</Button>
 								<Button
 									variant={session.hideHits ? "default" : "outline"}

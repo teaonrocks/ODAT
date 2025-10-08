@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface InstructionSlidesProps {
 	currentSlide: number;
-	totalSlides: number;
+	totalSlides?: number;
 }
 
 interface InstructionSlide {
@@ -100,7 +100,17 @@ export default function InstructionSlides({
 	currentSlide,
 	totalSlides,
 }: InstructionSlidesProps) {
-	const slide = instructionSlides[currentSlide] || instructionSlides[0];
+	const totalAvailableSlides = instructionSlides.length;
+	const safeIndex = Math.min(
+		Math.max(currentSlide, 0),
+		totalAvailableSlides - 1
+	);
+	const slide = instructionSlides[safeIndex];
+	const totalToDisplay = Math.min(
+		totalSlides ?? totalAvailableSlides,
+		totalAvailableSlides
+	);
+	const currentNumber = safeIndex + 1;
 
 	return (
 		<main className="min-h-screen p-4 sm:p-8">
@@ -111,7 +121,7 @@ export default function InstructionSlides({
 						<div className="flex justify-center items-center">
 							<CardTitle className="text-2xl font-bold">
 								<p className="text-2xl font-bold">
-									Instruction {currentSlide + 1} of {totalSlides}
+									Instruction {currentNumber} of {totalToDisplay}
 								</p>
 							</CardTitle>
 						</div>

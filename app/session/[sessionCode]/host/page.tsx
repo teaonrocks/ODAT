@@ -242,7 +242,7 @@ export default function HostPage() {
 						</Card>
 
 						{/* Option B - Yellow */}
-						<Card className="bg-yellow-500 flex flex-col">
+						<Card className="bg-yellow-600 flex flex-col">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2">
 									{/* <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-lg font-bold">

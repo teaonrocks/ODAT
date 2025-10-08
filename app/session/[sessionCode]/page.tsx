@@ -158,7 +158,7 @@ function GameOptions({
 										day5OptionADisabled ||
 										day14OptionBDisabled
 									}
-									className={`w-full h-20 sm:h-24 bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-lg sm:text-xl ${!canAffordOptionB || day5OptionADisabled || day14OptionBDisabled ? "opacity-50" : ""}`}
+									className={`w-full h-20 sm:h-24 bg-yellow-600 hover:bg-yellow-600 text-white font-bold text-lg sm:text-xl ${!canAffordOptionB || day5OptionADisabled || day14OptionBDisabled ? "opacity-50" : ""}`}
 								>
 									${Math.abs(scenario.optionB_consequence.resourceChange || 0)}
 								</Button>
@@ -433,44 +433,14 @@ export default function PlayerPage() {
 		return (
 			<main className="min-h-screen p-2 sm:p-4 space-y-2 sm:space-y-4">
 				<div className="max-w-4xl mx-auto flex flex-col gap-2 sm:gap-4">
-					{/* Conditional layout based on session preference */}
-					{session.layoutPreference === "status-top" ? (
-						<>
-							{/* Player Status - Top when preference is status-top */}
-							<PlayerStatusSection
-								player={player}
-								showHits={!session.hideHits}
-							/>
-							{/* Game Content - Bottom when preference is status-top */}
-							<div>
-								<GameOptions
-									session={session}
-									scenario={scenario}
-									player={player}
-									playerId={playerId}
-									makeChoice={makeChoice}
-								/>
-							</div>
-						</>
-					) : (
-						<>
-							{/* Game Content - Top when preference is choices-top (default) */}
-							<div>
-								<GameOptions
-									session={session}
-									scenario={scenario}
-									player={player}
-									playerId={playerId}
-									makeChoice={makeChoice}
-								/>
-							</div>
-							{/* Player Status - Bottom when preference is choices-top (default) */}
-							<PlayerStatusSection
-								player={player}
-								showHits={!session.hideHits}
-							/>
-						</>
-					)}
+					<PlayerStatusSection player={player} showHits={!session.hideHits} />
+					<GameOptions
+						session={session}
+						scenario={scenario}
+						player={player}
+						playerId={playerId}
+						makeChoice={makeChoice}
+					/>
 				</div>
 			</main>
 		);
