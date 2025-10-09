@@ -339,6 +339,13 @@ export const seed = mutation({
 					narrative:
 						"Unfortunately, you were let go from your job. (This happens if you accumulated 3 Job Hits).",
 				},
+				subPages: [
+					{
+						title: "Final Loan & Ring Reminder",
+						content:
+							"Today is your last chance to repay any remaining loans and redeem your wedding ring.\nIgnoring this reminder will cost you a Health Hit, and if that pushes you to three, you'll lose your job.",
+					},
+				],
 			},
 		];
 

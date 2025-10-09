@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlayerStatus } from "@/components/PlayerStatus";
 import DayTransition from "@/components/DayTransition";
-import DayResult from "@/components/DayResult";
 import {
 	Select,
 	SelectContent,
@@ -25,8 +24,8 @@ type Choice = Player["choices"][0];
 type MakeChoiceMutation = ReturnType<
 	typeof useMutation<typeof api.players.makeChoice>
 >;
-type RepayLoanMutation = ReturnType<
-	typeof useMutation<typeof api.players.repayLoan>
+type HandleLoanReminderMutation = ReturnType<
+	typeof useMutation<typeof api.players.handleLoanReminder>
 >;
 
 // Component for displaying game options and choices
@@ -179,105 +178,176 @@ function GameOptions({
 	);
 }
 
-function Day8LoanReminder({
+function LoanReminderSubPage({
+	day,
 	subPage,
 	player,
-	repayLoan,
+	handleLoanReminder,
 }: {
+	day: number;
 	subPage: { title: string; content: string };
 	player: Player;
-	repayLoan: RepayLoanMutation;
+	handleLoanReminder: HandleLoanReminderMutation;
 }) {
 	const [statusMessage, setStatusMessage] = useState<string | null>(null);
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const loanBalance = player.loanBalance ?? 0;
-	const totalCost = Math.round(loanBalance * 1.1);
-	const hasLoan = loanBalance > 0;
-	const canRepay = hasLoan && (player.resources ?? 0) >= totalCost;
 
-	const handleRepay = async () => {
-		if (!hasLoan || !canRepay) return;
+	const resources = player.resources ?? 0;
+	const loanBalance = player.loanBalance ?? 0;
+	const loanCost = loanBalance > 0 ? Math.round(loanBalance * 1.1) : 0;
+	const ringPawned = player.ringPawned ?? false;
+	const ringRedemptionCost = day === 14 && ringPawned ? 159 : 0;
+	const totalCost = loanCost + ringRedemptionCost;
+	const hasObligation = totalCost > 0;
+	const canResolve = hasObligation && resources >= totalCost;
+	const alreadyResolved = player.loanReminderResolvedDay === day;
+	const isPayDisabled = !canResolve || isSubmitting || alreadyResolved;
+	const summaryGridCols = "sm:grid-cols-3";
+	const ringStatus = ringPawned ? "Pawned" : "Available";
+	const ringNote = (() => {
+		if (day === 14) {
+			return ringPawned ? "Redeem now for $159." : "No redemption needed.";
+		}
+		return ringPawned
+			? "Plan for $159 to redeem on Day 14."
+			: "No cost pending.";
+	})();
+
+	const getResolutionLabel = () => {
+		if (loanCost > 0 && ringRedemptionCost > 0) return "Pay Loan & Redeem Ring";
+		if (loanCost > 0) return "Repay Loan";
+		if (ringRedemptionCost > 0) return "Redeem Ring";
+		return "Resolve";
+	};
+
+	const handleAction = async (action: "pay" | "ignore") => {
+		if (alreadyResolved) return;
+		if (action === "pay" && !canResolve) return;
+
 		setIsSubmitting(true);
 		setStatusMessage(null);
+		setErrorMessage(null);
+
 		try {
-			await repayLoan({
+			const result = await handleLoanReminder({
 				playerId: player._id,
-				repaymentAmount: loanBalance,
+				action,
+				day,
 			});
-			setStatusMessage(
-				`Loan repayment submitted! You paid $${loanBalance} plus 10% interest.`
-			);
+
+			switch (result.status) {
+				case "paid": {
+					const parts: string[] = [];
+					if (loanCost > 0) {
+						parts.push(`loan ($${loanBalance} + 10% interest = $${loanCost})`);
+					}
+					if (ringRedemptionCost > 0) {
+						parts.push("wedding ring ($159)");
+					}
+					const details = parts.length > 0 ? ` (${parts.join(" and ")})` : "";
+					setStatusMessage(`Success! You resolved your obligations${details}.`);
+					break;
+				}
+				case "ignored": {
+					const healthHits = result.healthHits ?? player.healthHits;
+					const jobHits = result.jobHits ?? player.jobHits;
+					const unemployed = !result.isEmployed && player.isEmployed;
+					const consequences = [];
+					consequences.push(`Health hits: ${healthHits}`);
+					if (jobHits !== player.jobHits) {
+						consequences.push(`Job hits: ${jobHits}`);
+					}
+					if (unemployed) {
+						consequences.push("You lost your job.");
+					}
+					setStatusMessage(
+						`You ignored the reminder. ${consequences.join(" ")}`.trim()
+					);
+					break;
+				}
+				case "already-resolved":
+				default:
+					setStatusMessage("You've already handled this reminder.");
+			}
 		} catch (error) {
-			setStatusMessage(
+			setErrorMessage(
 				error instanceof Error
 					? error.message
-					: "Failed to repay loan. Please try again."
+					: "Something went wrong. Please try again."
 			);
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
 
-	const handleIgnore = () => {
-		setStatusMessage("You chose to ignore the loan for now.");
-	};
-
 	return (
 		<main className="min-h-screen p-4 sm:p-8 flex items-center justify-center">
 			<div className="w-full max-w-4xl space-y-6">
 				<Card>
-					<CardHeader>
-						<CardTitle className="text-3xl sm:text-4xl font-bold text-center">
-							{subPage.title}
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="bg-muted/50 rounded-lg p-6 sm:p-8">
-							<p className="text-lg sm:text-2xl leading-relaxed text-center text-muted-foreground whitespace-pre-line">
-								{subPage.content}
-							</p>
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardContent className="space-y-6 p-6 sm:p-8">
-						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-lg sm:text-xl text-center">
-							<div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-								<div className="font-semibold text-blue-900">Cash Available</div>
-								<div className="text-3xl font-bold text-blue-900">
-									${player.resources ?? 0}
+					<CardContent className="space-y-6 p-6 pt-4 sm:p-8 sm:pt-6">
+						<div
+							className={`grid grid-cols-1 ${summaryGridCols} gap-4 text-lg sm:text-xl items-start`}
+						>
+							<div className="space-y-1">
+								<div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+									Cash Available
+								</div>
+								<div className="text-3xl font-bold text-foreground">
+									${resources}
 								</div>
 							</div>
-							<div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-								<div className="font-semibold text-amber-900">Loan Balance</div>
-								<div className="text-3xl font-bold text-amber-900">
+							<div className="space-y-1">
+								<div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+									Loan Balance
+								</div>
+								<div className="text-3xl font-bold text-foreground">
 									${loanBalance}
 								</div>
-								{hasLoan && (
-									<div className="mt-2 text-sm text-amber-800">
-										Cost with 10% interest: ${totalCost}
+								{loanCost > 0 ? (
+									<div className="text-sm text-muted-foreground">
+										Cost with 10% interest: ${loanCost}
+									</div>
+								) : (
+									<div className="text-sm text-muted-foreground">
+										No outstanding loan
 									</div>
 								)}
 							</div>
+							<div className="space-y-1">
+								<div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+									Wedding Ring
+								</div>
+								<div
+									className={`text-3xl font-semibold text-foreground ${ringPawned ? "text-red-500" : "text-green-500"}`}
+								>
+									{ringStatus}
+								</div>
+								<div className="text-sm text-muted-foreground">{ringNote}</div>
+							</div>
 						</div>
 
-						{hasLoan ? (
+						{hasObligation ? (
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 								<Button
-									onClick={handleRepay}
-									disabled={!canRepay || isSubmitting}
-									className="h-auto py-4 flex flex-col gap-1 text-base"
+									onClick={() => handleAction("pay")}
+									disabled={isPayDisabled}
+									className={`h-auto py-4 flex flex-col gap-1 text-base ${isPayDisabled ? "opacity-60 cursor-not-allowed" : ""}`}
+									title={
+										!canResolve
+											? `You need $${totalCost} total but only have $${resources}.`
+											: undefined
+									}
 								>
-									<span>Repay Loan (${loanBalance})</span>
+									<span>{getResolutionLabel()}</span>
 									<span className="text-xs opacity-80">
-										Includes 10% interest: ${totalCost}
+										Total cost: ${totalCost}
 									</span>
 								</Button>
 								<Button
 									variant="outline"
-									onClick={handleIgnore}
-									disabled={isSubmitting}
+									onClick={() => handleAction("ignore")}
+									disabled={isSubmitting || alreadyResolved}
 									className="h-auto py-4 text-base"
 								>
 									Ignore For Now
@@ -285,25 +355,53 @@ function Day8LoanReminder({
 							</div>
 						) : (
 							<div className="text-center text-sm sm:text-base text-muted-foreground">
-								You have no outstanding loans. Let the host know when you&rsquo;re ready to
-								continue.
+								You have no outstanding loan or ring obligations to resolve.
 							</div>
 						)}
 
+						{errorMessage && (
+							<div className="text-sm text-center text-red-600">
+								{errorMessage}
+							</div>
+						)}
 						{statusMessage && (
 							<div className="text-sm text-center text-muted-foreground">
 								{statusMessage}
 							</div>
 						)}
-						{!canRepay && hasLoan && (
+						{!canResolve && hasObligation && !alreadyResolved && (
 							<div className="text-sm text-center text-red-600">
-								You need ${totalCost} to repay the loan but currently have $
-								{player.resources ?? 0}.
+								You need ${totalCost} to resolve everything but currently have $
+								{resources}.
+							</div>
+						)}
+						{alreadyResolved && (
+							<div className="text-sm text-center text-green-600">
+								You’ve already completed this reminder.
 							</div>
 						)}
 					</CardContent>
 				</Card>
 			</div>
+		</main>
+	);
+}
+
+function DayResultHoldingPage({ day }: { day: number }) {
+	return (
+		<main className="min-h-screen p-4 sm:p-8 flex flex-col items-center justify-center gap-6">
+			<Card className="w-full max-w-3xl">
+				<CardHeader>
+					<CardTitle className="text-2xl sm:text-3xl text-center">
+						One day at a time
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-4 text-center">
+					<div className="flex flex-col items-center gap-3 text-sm text-muted-foreground">
+						<div className="w-10 h-10 border-4 border-muted border-t-primary rounded-full animate-spin"></div>
+					</div>
+				</CardContent>
+			</Card>
 		</main>
 	);
 }
@@ -333,7 +431,9 @@ export default function PlayerPage() {
 	);
 	const makeChoice = useMutation(api.players.makeChoice);
 	const assignToGroup = useMutation(api.players.assignToGroup);
-	const repayLoanMutation = useMutation(api.players.repayLoan);
+	const handleLoanReminderMutation = useMutation(
+		api.players.handleLoanReminder
+	);
 
 	const playerId = useMemo(() => {
 		if (typeof window === "undefined") return null;
@@ -513,22 +613,23 @@ export default function PlayerPage() {
 		return <DayTransition day={session.currentDay ?? 1} />;
 	}
 
-	if (session.gameState === "DAY_RESULT" && scenario?.subPages) {
-		const currentSubPage = session.currentSubPage ?? 0;
-		const subPage = scenario.subPages[currentSubPage];
-
-		if (subPage) {
-			if (session.currentDay === 8 && player) {
+	if (session.gameState === "DAY_RESULT") {
+		const day = session.currentDay ?? 0;
+		if (player && scenario?.subPages && (day === 8 || day === 14)) {
+			const currentSubPage = session.currentSubPage ?? 0;
+			const subPage = scenario.subPages[currentSubPage];
+			if (subPage) {
 				return (
-					<Day8LoanReminder
+					<LoanReminderSubPage
+						day={day}
 						player={player}
 						subPage={subPage}
-						repayLoan={repayLoanMutation}
+						handleLoanReminder={handleLoanReminderMutation}
 					/>
 				);
 			}
-			return <DayResult title={subPage.title} content={subPage.content} />;
 		}
+		return <DayResultHoldingPage day={day} />;
 	}
 
 	if (session.gameState === "IN_GAME") {

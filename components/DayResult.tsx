@@ -8,17 +8,17 @@ export default function DayResult({
 	content: string;
 }) {
 	return (
-		<main className="min-h-screen p-4 sm:p-8 flex items-center justify-center">
-			<div className="w-full max-w-4xl">
-				<Card>
+		<main className="min-h-screen flex items-center justify-center bg-background p-8">
+			<div className="w-full max-w-[1000px]">
+				<Card className="bg-background/90">
 					<CardHeader>
-						<CardTitle className="text-3xl sm:text-4xl font-bold text-center">
+						<CardTitle className="text-4xl sm:text-5xl font-bold text-center">
 							{title}
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="bg-muted/50 rounded-lg p-6 sm:p-8">
-							<p className="text-lg sm:text-2xl leading-relaxed text-center text-muted-foreground whitespace-pre-line">
+						<div className="bg-muted/40 rounded-3xl px-10 py-12">
+							<p className="text-2xl sm:text-3xl leading-snug text-center text-muted-foreground whitespace-pre-line">
 								{content}
 							</p>
 						</div>

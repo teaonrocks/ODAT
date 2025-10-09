@@ -4,7 +4,6 @@ import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import InstructionSlides from "@/components/InstructionSlides";
 import DayTransition from "@/components/DayTransition";
@@ -25,20 +24,22 @@ function QRCodeCard({ sessionCode }: { sessionCode: string }) {
 	if (!qrUrl) return null;
 
 	return (
-		<Card>
+		<Card className="bg-background/80">
 			<CardHeader>
-				<CardTitle className="text-xl sm:text-2xl">Scan to Join</CardTitle>
+				<CardTitle className="text-3xl sm:text-4xl font-semibold">
+					Scan to Join
+				</CardTitle>
 			</CardHeader>
-			<CardContent className="flex flex-col items-center space-y-4">
-				<div className="p-4 bg-white rounded-lg shadow-inner">
+			<CardContent className="flex flex-col items-center space-y-6">
+				<div className="p-6 bg-white rounded-2xl shadow-inner">
 					{/* eslint-disable-next-line @next/next/no-img-element */}
 					<img
 						src={qrUrl}
 						alt="QR Code to join session"
-						className="w-48 h-48"
+						className="w-64 h-64"
 					/>
 				</div>
-				<p className="text-sm text-muted-foreground">
+				<p className="text-lg sm:text-2xl text-muted-foreground">
 					Players can scan this code to join the session
 				</p>
 			</CardContent>
@@ -53,7 +54,6 @@ export default function HostPage() {
 		api.scenarios.get,
 		session?.currentDay ? { day: session.currentDay } : "skip"
 	);
-	const startInstructions = useMutation(api.sessions.startInstructions);
 	const showDayScenario = useMutation(api.sessions.showDayScenario);
 
 	// Auto-advance from day transition to scenario after configurable duration
@@ -99,27 +99,27 @@ export default function HostPage() {
 	// Lobby slide
 	if (session.gameState === "LOBBY") {
 		return (
-			<main className="min-h-screen flex items-center justify-center p-4">
-				<div className="w-full max-w-4xl text-center space-y-8">
-					<Card>
-						<CardHeader className="pb-8">
-							<CardTitle className="text-4xl sm:text-6xl font-bold">
+			<main className="min-h-screen flex items-center justify-center bg-background p-8">
+				<div className="w-full max-w-6xl text-center space-y-12">
+					<Card className="bg-background/90">
+						<CardHeader className="pb-12">
+							<CardTitle className="text-5xl sm:text-7xl font-bold">
 								One Day at a Time
 							</CardTitle>
-							<p className="text-xl sm:text-2xl text-muted-foreground mt-4">
+							<p className="text-2xl sm:text-3xl text-muted-foreground mt-6">
 								An experiential activity
 							</p>
 						</CardHeader>
 					</Card>
 
-					<Card>
+					<Card className="bg-background/90">
 						<CardHeader>
-							<CardTitle className="text-xl sm:text-2xl">
+							<CardTitle className="text-3xl sm:text-4xl font-semibold">
 								Session Code
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="text-4xl sm:text-6xl font-mono font-bold tracking-wider bg-muted/50 rounded-lg p-6">
+							<div className="text-5xl sm:text-7xl font-mono font-extrabold tracking-[0.35em] uppercase bg-muted/60 rounded-3xl px-12 py-10">
 								{session.sessionCode}
 							</div>
 						</CardContent>
@@ -159,14 +159,14 @@ export default function HostPage() {
 	// Game finished slide
 	if (session.gameState === "FINISHED") {
 		return (
-			<main className="min-h-screen flex items-center justify-center p-4">
-				<div className="w-full max-w-4xl text-center space-y-8">
-					<Card>
-						<CardHeader className="pb-8">
-							<CardTitle className="text-4xl sm:text-6xl font-bold">
+			<main className="min-h-screen flex items-center justify-center bg-background p-8">
+				<div className="w-full max-w-6xl text-center space-y-12">
+					<Card className="bg-background/90">
+						<CardHeader className="pb-12">
+							<CardTitle className="text-5xl sm:text-7xl font-bold">
 								End of two weeks
 							</CardTitle>
-							<p className="text-xl sm:text-2xl text-muted-foreground mt-4">
+							<p className="text-2xl sm:text-3xl text-muted-foreground mt-6">
 								You need to repay your loans and redeem your wedding ring.
 							</p>
 						</CardHeader>
@@ -179,125 +179,90 @@ export default function HostPage() {
 	// Main game slide - scenario presentation
 	if (session.gameState === "IN_GAME" && scenario) {
 		return (
-			<main className="min-h-screen p-4 sm:p-8">
-				<div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
-					{/* Header */}
-					<Card>
+			<main className="min-h-screen flex items-center justify-center bg-background p-8">
+				<div className="w-full max-w-[1200px] space-y-12">
+					<Card className="bg-background/90">
 						<CardHeader>
 							<div className="flex justify-center items-center">
-								<CardTitle className="text-2xl font-bold">
-									<p className="text-2xl font-bold">Day {session.currentDay}</p>
+								<CardTitle className="text-4xl sm:text-5xl font-bold">
+									Day {session.currentDay}
 								</CardTitle>
 							</div>
 						</CardHeader>
 					</Card>
 
-					{/* Scenario Prompt */}
-					<Card>
+					<Card className="bg-background/90">
 						<CardContent>
-							<div className="bg-muted/50 rounded-lg p-6 sm:p-8">
-								<p className="text-lg sm:text-3xl leading-relaxed text-center font-bold">
+							<div className="bg-muted/40 rounded-3xl px-10 py-12">
+								<p className="text-3xl sm:text-4xl leading-snug text-center font-bold">
 									{scenario.prompt}
 								</p>
 							</div>
 						</CardContent>
 					</Card>
 
-					{/* Options */}
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-						<div className="flex flex-col gap-4 h-full">
-							<div className="flex-1">
-								{/* Option A - Blue */}
-								<Card className="bg-blue-600 flex flex-col h-full">
-									<CardHeader>
-										<CardTitle className="flex items-center gap-2"></CardTitle>
-									</CardHeader>
-									<CardContent className="flex-1 flex flex-col justify-between space-y-4">
-										<p className="text-base sm:text-3xl leading-relaxed text-white text-center h-full">
-											{scenario.optionA_text}
-										</p>
-										<div className="text-right">
-											<div className="inline-block bg-neutral-50 text-white px-4 py-2 rounded-full">
-												<span className="text-xl font-bold text-black">
-													$
-													{Math.abs(
-														scenario.optionA_consequence.resourceChange || 0
-													)}
-												</span>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-							</div>
-							{scenario.optionA_details && (
-								<Card className="bg-blue-50 border border-blue-200 text-blue-900">
-									<CardContent className="text-sm sm:text-lg space-y-2 text-center">
-										{scenario.optionA_details.map((detail, index) => (
-											<p key={index}>{detail}</p>
-										))}
-									</CardContent>
-								</Card>
-							)}
-						</div>
-
-						<div className="flex flex-col gap-4 h-full">
-							<div className="flex-1">
-								{/* Option B - Yellow */}
-								<Card className="bg-yellow-600 flex flex-col h-full">
-									<CardHeader>
-										<CardTitle className="flex items-center gap-2">
-											{/* <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-lg font-bold">
-												Option B
-											</span> */}
-										</CardTitle>
-									</CardHeader>
-									<CardContent className="flex-1 flex flex-col justify-between space-y-4">
-										<p className="text-base sm:text-3xl leading-relaxed text-white text-center ">
-											{scenario.optionB_text}
-										</p>
-										<div className="text-right">
-											<div className="inline-block bg-neutral-50 text-black px-4 py-2 rounded-full">
-												<span className="text-xl font-bold">
-													$
-													{Math.abs(
-														scenario.optionB_consequence.resourceChange || 0
-													)}
-												</span>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-							</div>
-							{scenario.optionB_details && (
-								<Card className="bg-yellow-50 border border-yellow-200 text-yellow-900">
-									<CardContent className="text-sm sm:text-lg space-y-2 text-center">
-										{scenario.optionB_details.map((detail, index) => (
-											<p key={index}>{detail}</p>
-										))}
-									</CardContent>
-								</Card>
-							)}
-						</div>
+					<div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-stretch">
+						<Card className="bg-blue-600 flex flex-col h-full">
+							<CardContent className="flex-1 flex flex-col justify-between gap-6 p-10">
+								<p className="text-3xl sm:text-4xl leading-snug text-white text-center">
+									{scenario.optionA_text}
+								</p>
+								<div className="flex justify-center">
+									<div className="inline-flex items-center gap-3 bg-white/90 text-black px-6 py-3 rounded-full shadow-lg">
+										<span className="text-3xl font-extrabold">
+											$
+											{Math.abs(
+												scenario.optionA_consequence.resourceChange || 0
+											)}
+										</span>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+						<Card className="bg-yellow-600 flex flex-col h-full">
+							<CardContent className="flex-1 flex flex-col justify-between gap-6 p-10">
+								<p className="text-3xl sm:text-4xl leading-snug text-white text-center">
+									{scenario.optionB_text}
+								</p>
+								<div className="flex justify-center">
+									<div className="inline-flex items-center gap-3 bg-white/90 text-black px-6 py-3 rounded-full shadow-lg">
+										<span className="text-3xl font-extrabold">
+											$
+											{Math.abs(
+												scenario.optionB_consequence.resourceChange || 0
+											)}
+										</span>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
 					</div>
 
-					{/* Instructions */}
+					<div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+						{scenario.optionA_details ? (
+							<Card className="bg-background/70 border border-border/40 shadow-lg">
+								<CardContent className="text-xl">
+									{scenario.optionA_details.map((detail, index) => (
+										<p key={index}>{detail}</p>
+									))}
+								</CardContent>
+							</Card>
+						) : (
+							<div className="hidden lg:block" />
+						)}
 
-					{/* <Card>
-						<CardContent className="text-center py-6">
-							<p className="text-base sm:text-lg text-muted-foreground">
-								Players: Choose your option using the blue or yellow buttons
-							</p>
-							<div className="mt-4">
-								<a
-									href={`/session/${sessionCode}/host/controls`}
-									className="text-sm text-muted-foreground hover:text-foreground underline"
-									target="_blank"
-								>
-									Open Presenter Controls →
-								</a>
-							</div>
-						</CardContent>
-					</Card> */}
+						{scenario.optionB_details ? (
+							<Card className="bg-background/70 border border-border/40 shadow-lg">
+								<CardContent className="text-xl">
+									{scenario.optionB_details.map((detail, index) => (
+										<p key={index}>{detail}</p>
+									))}
+								</CardContent>
+							</Card>
+						) : (
+							<div className="hidden lg:block" />
+						)}
+					</div>
 				</div>
 			</main>
 		);
@@ -305,10 +270,10 @@ export default function HostPage() {
 
 	// Fallback
 	return (
-		<main className="min-h-screen flex items-center justify-center p-4">
-			<Card className="w-full max-w-xl">
-				<CardContent className="text-center py-8">
-					<p className="text-lg text-muted-foreground">Loading...</p>
+		<main className="min-h-screen flex items-center justify-center bg-background">
+			<Card className="w-full max-w-3xl">
+				<CardContent className="text-center py-16">
+					<p className="text-2xl text-muted-foreground">Loading...</p>
 				</CardContent>
 			</Card>
 		</main>

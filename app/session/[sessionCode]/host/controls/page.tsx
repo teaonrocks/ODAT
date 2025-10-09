@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
@@ -20,6 +21,46 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Footer } from "@/components/Footer";
+
+type ProgressSummaryCardProps = {
+	title: string;
+	resolvedCount: number;
+	totalCount: number;
+	resolvedLabel: string;
+	footer?: ReactNode;
+};
+
+function ProgressSummaryCard({
+	title,
+	resolvedCount,
+	totalCount,
+	resolvedLabel,
+	footer,
+}: ProgressSummaryCardProps) {
+	const safeTotal = Math.max(totalCount, 0);
+	const safeResolved = Math.max(resolvedCount, 0);
+	const progressPercent = safeTotal === 0
+		? 0
+		: Math.min(100, (safeResolved / safeTotal) * 100);
+
+	return (
+		<div className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3 text-center">
+			<div className="text-sm font-medium text-gray-800">{title}</div>
+			<div className="text-3xl font-bold text-gray-900">
+				{safeResolved}
+				<span className="text-lg text-gray-600">/{safeTotal}</span>
+			</div>
+			<div className="text-xs text-gray-600">{resolvedLabel}</div>
+			<div className="w-full bg-gray-200 rounded-full h-2">
+				<div
+					className="bg-gray-800 h-2 rounded-full transition-all duration-300"
+					style={{ width: `${progressPercent}%` }}
+				></div>
+			</div>
+			{footer ?? null}
+		</div>
+	);
+}
 
 export default function PresenterControlsPage() {
 	const { sessionCode } = useParams<{ sessionCode: string }>();
@@ -47,6 +88,82 @@ export default function PresenterControlsPage() {
 	const createGroup = useMutation(api.sessions.createGroup);
 	const updateGroup = useMutation(api.sessions.updateGroup);
 	const deleteGroup = useMutation(api.sessions.deleteGroup);
+
+	const currentDay = session?.currentDay ?? 0;
+	const isLoanReminderDay = currentDay === 8 || currentDay === 14;
+	const showLoanReminderProgress =
+		session?.gameState === "DAY_RESULT" && isLoanReminderDay;
+
+	const playerChoiceStats = useMemo(() => {
+		if (!players) {
+			return { resolvedCount: 0, totalCount: 0 };
+		}
+
+		const totalCount = players.length;
+		const resolvedCount = players.filter((player) =>
+			player.choices?.some((choice) => choice.day === currentDay)
+		).length;
+
+		return { resolvedCount, totalCount };
+	}, [players, currentDay]);
+
+	const loanReminderStats = useMemo(() => {
+		if (!players || !isLoanReminderDay) {
+			return {
+				requiredCount: 0,
+				resolvedCount: 0,
+				pendingNames: [] as string[],
+			};
+		}
+
+		const relevantPlayers = players.filter((player) => {
+			const resolvedToday = player.loanReminderResolvedDay === currentDay;
+			if (resolvedToday) {
+				return true;
+			}
+
+			const hasLoan = (player.loanBalance ?? 0) > 0;
+			const hasRing = currentDay === 14 && player.ringPawned;
+			return hasLoan || hasRing;
+		});
+
+		const resolvedPlayers = relevantPlayers.filter(
+			(player) => player.loanReminderResolvedDay === currentDay
+		);
+
+		const pendingNames = relevantPlayers
+			.filter((player) => player.loanReminderResolvedDay !== currentDay)
+			.map((player) => player.name)
+			.sort((a, b) => a.localeCompare(b));
+
+		return {
+			requiredCount: relevantPlayers.length,
+			resolvedCount: resolvedPlayers.length,
+			pendingNames,
+		};
+	}, [players, currentDay, isLoanReminderDay]);
+
+	const loanReminderFooter = useMemo(() => {
+		if (loanReminderStats.requiredCount === 0) {
+			return (
+				<div className="text-xs text-muted-foreground">
+					No players have outstanding loans or pawned rings.
+				</div>
+			);
+		}
+
+		if (loanReminderStats.pendingNames.length > 0) {
+			return (
+				<div className="text-xs text-red-600">
+					Waiting on: {loanReminderStats.pendingNames.join(", ")}
+				</div>
+			);
+		}
+
+		return (
+			<div className="text-xs text-green-600">All loan reminders resolved.</div>
+		);
+	}, [loanReminderStats]);
 
 	const [durationInput, setDurationInput] = useState("");
 	const [isTransitionSettingsOpen, setIsTransitionSettingsOpen] =
@@ -327,43 +444,12 @@ export default function PresenterControlsPage() {
 										</div>
 
 										{/* Player Choice Counter */}
-										<div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-											<div className="text-center space-y-2">
-												<div className="text-sm font-medium text-gray-800">
-													Player Choices
-												</div>
-												<div className="text-3xl font-bold text-gray-900">
-													{players?.filter((p) =>
-														p.choices?.some((c) => c.day === session.currentDay)
-													).length || 0}
-													<span className="text-lg text-gray-600">
-														/{players?.length || 0}
-													</span>
-												</div>
-												<div className="text-xs text-gray-600">
-													players have made their choice
-												</div>
-												{/* Progress Bar */}
-												<div className="w-full bg-gray-200 rounded-full h-2">
-													<div
-														className="bg-gray-800 h-2 rounded-full transition-all duration-300"
-														style={{
-															width: `${
-																players?.length
-																	? (players.filter((p) =>
-																			p.choices?.some(
-																				(c) => c.day === session.currentDay
-																			)
-																		).length /
-																			players.length) *
-																		100
-																	: 0
-															}%`,
-														}}
-													></div>
-												</div>
-											</div>
-										</div>
+										<ProgressSummaryCard
+											title="Player Choices"
+											resolvedCount={playerChoiceStats.resolvedCount}
+											totalCount={playerChoiceStats.totalCount}
+											resolvedLabel="players have made their choice"
+										/>
 
 										<div className="space-y-2">
 											<Button
@@ -399,6 +485,16 @@ export default function PresenterControlsPage() {
 												{scenario?.subPages?.length ?? 0}
 											</div>
 										</div>
+
+										{showLoanReminderProgress && (
+											<ProgressSummaryCard
+												title="Loan &amp; Ring Reminder Progress"
+												resolvedCount={loanReminderStats.resolvedCount}
+												totalCount={loanReminderStats.requiredCount}
+												resolvedLabel="players have resolved the reminder"
+												footer={loanReminderFooter}
+											/>
+										)}
 
 										{scenario?.subPages &&
 										(session.currentSubPage ?? 0) <

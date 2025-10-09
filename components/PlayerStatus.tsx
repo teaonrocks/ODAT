@@ -32,7 +32,7 @@ interface PlayerStatusProps {
 	showHits?: boolean;
 }
 
-function HitsDisplay({
+export function HitsDisplay({
 	current,
 	label,
 	hitType,
@@ -262,7 +262,8 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 					<DialogHeader>
 						<DialogTitle>Borrow Money</DialogTitle>
 						<DialogDescription>
-							Choose an amount to borrow. Interest of 10% will apply when repaying.
+							Choose an amount to borrow. Interest of 10% will apply when
+							repaying.
 						</DialogDescription>
 					</DialogHeader>
 					<div className="grid grid-cols-2 gap-2">
@@ -293,8 +294,8 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 					<DialogHeader>
 						<DialogTitle>Repay Loan</DialogTitle>
 						<DialogDescription>
-							Choose an amount to repay. 10% interest will be added to the repayment
-							amount.
+							Choose an amount to repay. 10% interest will be added to the
+							repayment amount.
 						</DialogDescription>
 					</DialogHeader>
 					<p className="text-sm text-muted-foreground">
@@ -337,13 +338,16 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Pawn Wedding Ring</AlertDialogTitle>
 						<AlertDialogDescription>
-							Pawning your wedding ring will give you $150 immediately, but you will
-							lose the ring until you redeem it for $159 later.
+							Pawning your wedding ring will give you $150 immediately, but you
+							will lose the ring until you redeem it for $159 later.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<AlertDialogAction onClick={handlePawnRing} disabled={player.ringPawned}>
+						<AlertDialogAction
+							onClick={handlePawnRing}
+							disabled={player.ringPawned}
+						>
 							Confirm Pawn ($150)
 						</AlertDialogAction>
 					</AlertDialogFooter>
@@ -356,8 +360,8 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Redeem Wedding Ring</AlertDialogTitle>
 						<AlertDialogDescription>
-							Redeeming your wedding ring costs $159. Make sure you have enough cash
-							on hand before confirming.
+							Redeeming your wedding ring costs $159. Make sure you have enough
+							cash on hand before confirming.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
@@ -373,13 +377,17 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 			</AlertDialog>
 
 			{/* Job Termination Alert */}
-			<AlertDialog open={jobTerminationDialog} onOpenChange={setJobTerminationDialog}>
+			<AlertDialog
+				open={jobTerminationDialog}
+				onOpenChange={setJobTerminationDialog}
+			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>You&apos;ve Been Fired</AlertDialogTitle>
 						<AlertDialogDescription>
-							You have been fired from your job. You will not receive any money on the next
-							payday. You still have to keep making decisions—life goes on.
+							You have been fired from your job. You will not receive any money
+							on the next payday. You still have to keep making decisions—life
+							goes on.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

@@ -59,7 +59,9 @@ export default function ResultsPage() {
 							<div className="text-sm text-muted-foreground uppercase tracking-wide">
 								Final Resources
 							</div>
-							<div className="text-5xl font-bold text-green-600 mt-2">
+							<div
+								className={`text-5xl font-bold ${player.resources < 0 ? "text-red-600" : "text-green-600"} mt-2`}
+							>
 								${player.resources}
 							</div>
 						</div>

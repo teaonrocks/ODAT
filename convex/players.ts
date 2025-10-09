@@ -20,6 +20,7 @@ export const join = mutation({
 			loanBalance: 0,
 			borrowCount: 0,
 			ringPawned: false,
+			loanReminderResolvedDay: undefined,
 			choices: [],
 		});
 		return id;
@@ -253,6 +254,105 @@ export const redeemRing = mutation({
 		return { ringPawned: false, resources: newResources };
 	},
 });
+
+export const handleLoanReminder = mutation({
+	args: {
+		playerId: v.id("players"),
+		action: v.union(v.literal("pay"), v.literal("ignore")),
+		day: v.number(),
+	},
+	handler: async (ctx, { playerId, action, day }) => {
+		const player = await ctx.db.get(playerId);
+		if (!player) throw new Error("Player not found");
+
+		if (player.loanReminderResolvedDay === day) {
+			return {
+				status: "already-resolved",
+				resources: player.resources,
+				loanBalance: player.loanBalance,
+				ringPawned: player.ringPawned,
+				familyHits: player.familyHits,
+				healthHits: player.healthHits,
+				jobHits: player.jobHits,
+				isEmployed: player.isEmployed,
+				loanReminderResolvedDay: player.loanReminderResolvedDay,
+			};
+		}
+
+		if (action === "pay") {
+			const outstandingLoan = player.loanBalance ?? 0;
+			const loanCost = Math.round(outstandingLoan * 1.1);
+			const ringRedemptionCost = day === 14 && player.ringPawned ? 159 : 0;
+			const totalCost = loanCost + ringRedemptionCost;
+			if (totalCost <= 0) {
+				throw new Error("You have nothing outstanding to resolve.");
+			}
+
+			const currentResources = player.resources ?? 0;
+			if (currentResources < totalCost) {
+				throw new Error(
+					`Insufficient funds to resolve your obligations. You need $${totalCost}, but only have $${currentResources}.`
+				);
+			}
+
+			const newResources = currentResources - totalCost;
+
+			await ctx.db.patch(playerId, {
+				resources: newResources,
+				loanBalance: 0,
+				ringPawned: ringRedemptionCost > 0 ? false : player.ringPawned,
+				loanReminderResolvedDay: day,
+			});
+
+			return {
+				status: "paid",
+				resources: newResources,
+				loanBalance: 0,
+				ringPawned: ringRedemptionCost > 0 ? false : player.ringPawned,
+				familyHits: player.familyHits,
+				healthHits: player.healthHits,
+				jobHits: player.jobHits,
+				isEmployed: player.isEmployed,
+				loanReminderResolvedDay: day,
+			};
+		}
+
+		// action === "ignore"
+		let healthHits = (player.healthHits ?? 0) + 1;
+		let jobHits = player.jobHits ?? 0;
+		let isEmployed = player.isEmployed ?? false;
+
+		if (healthHits >= 3) {
+			jobHits += 1;
+			healthHits = 0;
+		}
+
+		if (jobHits >= 3) {
+			jobHits = 3;
+			isEmployed = false;
+		}
+
+		await ctx.db.patch(playerId, {
+			healthHits,
+			jobHits,
+			isEmployed,
+			loanReminderResolvedDay: day,
+		});
+
+		return {
+			status: "ignored",
+			resources: player.resources,
+			loanBalance: player.loanBalance,
+			ringPawned: player.ringPawned,
+			familyHits: player.familyHits,
+			healthHits,
+			jobHits,
+			isEmployed,
+			loanReminderResolvedDay: day,
+		};
+	},
+});
+
 
 export const assignToGroup = mutation({
 	args: {

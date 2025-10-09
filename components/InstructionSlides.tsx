@@ -120,33 +120,20 @@ export default function InstructionSlides({
 	const currentNumber = safeIndex + 1;
 
 	return (
-		<main className="min-h-screen p-4 sm:p-8">
-			<div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
-				{/* Header */}
-				<Card>
-					<CardHeader>
-						<div className="flex justify-center items-center">
-							<CardTitle className="text-2xl font-bold">
-								<p className="text-2xl font-bold">
-									Instruction {currentNumber} of {totalToDisplay}
-								</p>
-							</CardTitle>
-						</div>
-					</CardHeader>
-				</Card>
-
+		<main className="min-h-screen flex items-center justify-center bg-background p-8">
+			<div className="w-full max-w-[1200px] space-y-12">
 				{/* Instruction Content */}
-				<Card>
+				<Card className="bg-background/90">
 					<CardHeader>
-						<CardTitle className="text-3xl sm:text-4xl font-bold text-center">
+						<CardTitle className="text-4xl sm:text-5xl font-bold text-center">
 							{slide.title}
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="bg-muted/50 rounded-lg p-6 sm:p-8">
-							<div className="space-y-4 text-lg sm:text-2xl leading-relaxed text-center">
+						<div className="bg-muted/40 rounded-3xl px-10 py-12">
+							<div className="space-y-6 text-2xl sm:text-3xl leading-snug text-center">
 								{slide.content.map((line, index) => (
-									<p key={index} className={"text-center mb-4"}>
+									<p key={index} className="text-center">
 										{line}
 									</p>
 								))}
@@ -157,19 +144,19 @@ export default function InstructionSlides({
 
 				{/* Decision Example Visual (Slide 7) */}
 				{slide.isDecisionExample && (
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+					<div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-stretch">
 						{/* Option A - Blue */}
 						<Card className="bg-blue-600 flex flex-col">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2"></CardTitle>
 							</CardHeader>
-							<CardContent className="flex-1 flex flex-col justify-between space-y-4">
-								<p className="text-base sm:text-3xl leading-relaxed text-white text-center">
+							<CardContent className="flex-1 flex flex-col justify-between space-y-6 p-10">
+								<p className="text-3xl sm:text-4xl leading-snug text-white text-center">
 									Extract
 								</p>
-								<div className="text-right">
-									<div className="inline-block bg-neutral-50 text-white px-4 py-2 rounded-full">
-										<span className="text-xl font-bold text-black">$110</span>
+								<div className="flex justify-center">
+									<div className="inline-flex items-center gap-3 bg-neutral-50 text-black px-6 py-3 rounded-full shadow-lg">
+										<span className="text-3xl font-bold">$110</span>
 									</div>
 								</div>
 							</CardContent>
@@ -180,13 +167,13 @@ export default function InstructionSlides({
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2"></CardTitle>
 							</CardHeader>
-							<CardContent className="flex-1 flex flex-col justify-between space-y-4">
-								<p className="text-base sm:text-3xl leading-relaxed text-white text-center">
+							<CardContent className="flex-1 flex flex-col justify-between space-y-6 p-10">
+								<p className="text-3xl sm:text-4xl leading-snug text-white text-center">
 									Ignore
 								</p>
-								<div className="text-right">
-									<div className="inline-block bg-neutral-50 text-black px-4 py-2 rounded-full">
-										<span className="text-xl font-bold">$0</span>
+								<div className="flex justify-center">
+									<div className="inline-flex items-center gap-3 bg-neutral-50 text-black px-6 py-3 rounded-full shadow-lg">
+										<span className="text-3xl font-bold">$0</span>
 									</div>
 								</div>
 							</CardContent>
@@ -196,15 +183,15 @@ export default function InstructionSlides({
 
 				{/* Consequence Example Visual (Slide 8) */}
 				{slide.isConsequenceExample && (
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+					<div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-stretch">
 						{/* Health Hit Result */}
 						<div className=" flex flex-col">
 							<div className="flex-1 flex flex-col justify-center items-end space-y-4">
-								<div className="flex items-center space-x-2">
-									<span className="text-white font-bold text-3xl">
+								<div className="flex items-center space-x-4">
+									<span className="text-white font-bold text-4xl">
 										Health Hit!
 									</span>
-									<div className="w-8 h-8 rounded-full bg-red-500"></div>
+									<div className="w-10 h-10 rounded-full bg-red-500"></div>
 								</div>
 							</div>
 						</div>
@@ -214,13 +201,13 @@ export default function InstructionSlides({
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2"></CardTitle>
 							</CardHeader>
-							<CardContent className="flex-1 flex flex-col justify-between space-y-4">
-								<p className="text-base sm:text-3xl leading-relaxed text-white text-center">
+							<CardContent className="flex-1 flex flex-col justify-between space-y-6 p-10">
+								<p className="text-3xl sm:text-4xl leading-snug text-white text-center">
 									Ignore
 								</p>
-								<div className="text-right">
-									<div className="inline-block bg-neutral-50 text-black px-4 py-2 rounded-full">
-										<span className="text-xl font-bold">$0</span>
+								<div className="flex justify-center">
+									<div className="inline-flex items-center gap-3 bg-neutral-50 text-black px-6 py-3 rounded-full shadow-lg">
+										<span className="text-3xl font-bold">$0</span>
 									</div>
 								</div>
 							</CardContent>
@@ -230,59 +217,63 @@ export default function InstructionSlides({
 
 				{/* Accumulated Outcomes Visual (Slide 9) */}
 				{slide.isAccumulatedExample && (
-					<div className="space-y-8">
+					<div className="space-y-10">
 						{/* First progression: 3 Family Hits → +1 Health Hit */}
-						<div className="flex items-center justify-center space-x-6 text-2xl">
-							<div className="flex items-center space-x-2">
+						<div className="flex items-center justify-center space-x-10 text-3xl">
+							<div className="flex items-center space-x-4">
 								<span className="text-white font-bold">3</span>
-								<div className="w-6 h-6 rounded-full bg-blue-500"></div>
+								<div className="w-8 h-8 rounded-full bg-blue-500"></div>
 								<span className="text-white font-bold">Family Hits</span>
 							</div>
-							<span className="text-white text-3xl">→</span>
-							<div className="flex items-center space-x-2">
+							<span className="text-white text-4xl">→</span>
+							<div className="flex items-center space-x-3">
 								<span className="text-white font-bold">1 Health Hit</span>
 								<div className="flex items-center space-x-1">
-									<div className="w-6 h-6 rounded-full bg-blue-500 opacity-30"></div>
-									<div className="w-6 h-6 rounded-full bg-blue-500 opacity-30"></div>
-									<div className="w-6 h-6 rounded-full bg-blue-500 opacity-30"></div>
+									<div className="w-8 h-8 rounded-full bg-blue-500 opacity-30"></div>
+									<div className="w-8 h-8 rounded-full bg-blue-500 opacity-30"></div>
+									<div className="w-8 h-8 rounded-full bg-blue-500 opacity-30"></div>
 									<div> = </div>
-									<div className="w-6 h-6 rounded-full bg-red-500"></div>
+									<div className="w-8 h-8 rounded-full bg-red-500"></div>
 								</div>
 							</div>
 						</div>
 
 						{/* Second progression: 3 Health Hits → +1 Job Hit */}
-						<div className="flex items-center justify-center space-x-6 text-2xl">
-							<div className="flex items-center space-x-2">
+						<div className="flex items-center justify-center space-x-10 text-3xl">
+							<div className="flex items-center space-x-4">
 								<span className="text-white font-bold">3</span>
-								<div className="w-6 h-6 rounded-full bg-red-500"></div>
+								<div className="w-8 h-8 rounded-full bg-red-500"></div>
 								<span className="text-white font-bold">Health Hits</span>
 							</div>
-							<span className="text-white text-3xl">→</span>
-							<div className="flex items-center space-x-2">
+							<span className="text-white text-4xl">→</span>
+							<div className="flex items-center space-x-3">
 								<span className="text-white font-bold">1 Job Hit</span>
 								<div className="flex items-center space-x-1">
-									<div className="w-6 h-6 rounded-full bg-red-500 opacity-30"></div>
-									<div className="w-6 h-6 rounded-full bg-red-500 opacity-30"></div>
-									<div className="w-6 h-6 rounded-full bg-red-500 opacity-30"></div>
+									<div className="w-8 h-8 rounded-full bg-red-500 opacity-30"></div>
+									<div className="w-8 h-8 rounded-full bg-red-500 opacity-30"></div>
+									<div className="w-8 h-8 rounded-full bg-red-500 opacity-30"></div>
 									<div> = </div>
-									<div className="w-6 h-6 rounded-full bg-green-500"></div>
+									<div className="w-8 h-8 rounded-full bg-green-500"></div>
 								</div>
 							</div>
 						</div>
 
 						{/* Third progression: 3 Job Hits → Fired from Job */}
-						<div className="flex items-center justify-center space-x-6 text-2xl">
-							<div className="flex items-center space-x-2">
+						<div className="flex items-center justify-center space-x-10 text-3xl">
+							<div className="flex items-center space-x-4">
 								<span className="text-white font-bold">3</span>
-								<div className="w-6 h-6 rounded-full bg-green-500"></div>
+								<div className="w-8 h-8 rounded-full bg-green-500"></div>
 								<span className="text-white font-bold">Job Hits</span>
 							</div>
-							<span className="text-white text-3xl">→</span>
+							<span className="text-white text-4xl">→</span>
 							<span className="text-white font-bold">Fired from Job</span>
 						</div>
 					</div>
 				)}
+
+				<p className="text-xl text-muted-foreground text-center pt-4">
+					Instruction {currentNumber} of {totalToDisplay}
+				</p>
 			</div>
 		</main>
 	);

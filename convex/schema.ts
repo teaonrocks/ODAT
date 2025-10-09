@@ -61,6 +61,7 @@ export default defineSchema({
 		loanBalance: v.number(),
 		borrowCount: v.number(),
 		ringPawned: v.boolean(),
+		loanReminderResolvedDay: v.optional(v.number()),
 		groupId: v.optional(v.string()),
 		choices: v.array(
 			v.object({
