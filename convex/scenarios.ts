@@ -24,6 +24,8 @@ export const seed = mutation({
 			prompt: string;
 			optionA_text: string;
 			optionB_text: string;
+			optionA_details?: string[];
+			optionB_details?: string[];
 			optionA_consequence: {
 				resourceChange: number;
 				narrative: string;
@@ -63,8 +65,7 @@ export const seed = mutation({
 				subPages: [
 					{
 						title: "Congratulations!",
-						content:
-							"You got the job! Starting tomorrow, you'll be employed and earning a weekly salary.",
+						content: "You got the job!",
 					},
 				],
 			},
@@ -73,6 +74,16 @@ export const seed = mutation({
 				prompt: "It's time to purchase groceries for the week.",
 				optionA_text: "Less nutritious option",
 				optionB_text: "Nutritious option",
+				optionA_details: [
+					"Instant noodles",
+					"Processed frozen meals",
+					"White bread",
+				],
+				optionB_details: [
+					"Fresh vegetables",
+					"Wholegrain rice",
+					"Healthy snacks",
+				],
 				optionA_consequence: {
 					resourceChange: -70,
 					narrative:
@@ -108,6 +119,9 @@ export const seed = mutation({
 					"Your children need to buy assessment books and stationery supplies.",
 				optionA_text: "Purchase only the necessary items",
 				optionB_text: "Purchase additional supplies to get a discount",
+				optionB_details: [
+					"Purchase supplies up to $100 to receive 25% discount.",
+				],
 				optionA_consequence: {
 					resourceChange: -60,
 					narrative: "You got the essentials, but missed out on the savings.",
@@ -120,8 +134,7 @@ export const seed = mutation({
 				subPages: [
 					{
 						title: "Limited Cashflow",
-						content:
-							"Low-income families are often not able to take advantage of potential savings from shopping discounts because they have limited cashflow to purchase items in bulk.",
+						content: "Unable to take advantage of savings from bulk purchase.",
 					},
 				],
 			},
@@ -130,6 +143,9 @@ export const seed = mutation({
 				prompt: "Utilities and rental bills are due.",
 				optionA_text: "Pay bills",
 				optionB_text: "Don't pay",
+				optionB_details: [
+					"Reduced gas, water and elcetricity supplies + late payment charges for rent.",
+				],
 				optionA_consequence: {
 					resourceChange: -120,
 					narrative:
@@ -177,8 +193,10 @@ export const seed = mutation({
 			{
 				day: 8,
 				prompt: "PAYDAY after one week of work!",
-				optionA_text: "Keep salary ($300)",
-				optionB_text: "Pay rent and utilities arrears ($130)",
+				optionA_text: "Keep full salary",
+				optionB_text:
+					"Keep remaining salary after paying rent and utilities arrears",
+
 				optionA_consequence: {
 					resourceChange: 300,
 					narrative: "You received your weekly salary of $300.",
@@ -227,6 +245,11 @@ export const seed = mutation({
 				prompt: "Your stove breaks down.",
 				optionA_text: "Buy a new stove",
 				optionB_text: "Eat out for a week and delay",
+				optionA_details: ["Purchase refurbished stove", "One-time repair cost"],
+				optionB_details: [
+					"3 take-away meals per day",
+					"Family nutrition suffers",
+				],
 				optionA_consequence: {
 					resourceChange: -120,
 					narrative:
@@ -304,8 +327,8 @@ export const seed = mutation({
 			{
 				day: 14,
 				prompt: "Second PAYDAY!",
-				optionA_text: "Receive Salary ($300)",
-				optionB_text: "Out of job ($0)",
+				optionA_text: "Receive Salary",
+				optionB_text: "Out of job",
 				optionA_consequence: {
 					resourceChange: 300,
 					narrative:

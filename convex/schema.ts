@@ -13,6 +13,7 @@ export default defineSchema({
 			resourceChange: v.float64(),
 		}),
 		optionA_text: v.string(),
+		optionA_details: v.optional(v.array(v.string())),
 		optionB_consequence: v.object({
 			familyHits: v.optional(v.float64()),
 			healthHits: v.optional(v.float64()),
@@ -22,11 +23,10 @@ export default defineSchema({
 			resourceChange: v.float64(),
 		}),
 		optionB_text: v.string(),
+		optionB_details: v.optional(v.array(v.string())),
 		prompt: v.string(),
 		subPages: v.optional(
-			v.array(
-				v.object({ content: v.string(), title: v.string() })
-			)
+			v.array(v.object({ content: v.string(), title: v.string() }))
 		),
 	}).index("by_day", ["day"]),
 

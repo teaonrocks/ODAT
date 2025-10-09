@@ -32,7 +32,7 @@ const instructionSlides: InstructionSlide[] = [
 	},
 	{
 		title: "Starting Situation",
-		content: ["You are unemployed and have $150 cash left."],
+		content: ["You are unemployed and have $150 left."],
 	},
 	{
 		title: "The Challenge",
@@ -65,6 +65,13 @@ const instructionSlides: InstructionSlide[] = [
 		isAccumulatedExample: true,
 	},
 	{
+		title: "Job Income",
+		content: [
+			"If you get a job, you will be paid by the week.",
+			"If you get fired before payday, there will not be any pro-rated pay.",
+		],
+	},
+	{
 		title: "When short on cash",
 		content: [
 			"If funds are insufficient, you may:",
@@ -76,10 +83,10 @@ const instructionSlides: InstructionSlide[] = [
 	{
 		title: "Repayment Terms",
 		content: [
-			"• Loans: 10% interest",
-			"• Ring redemption: 6% interest",
-			"• All borrowed amounts must be repaid at the end of two weeks.",
-			"• The more you borrow, the more you will have to repay.",
+			"Loans: 10% interest",
+			"Ring redemption: 6% interest",
+			"All borrowed amounts must be repaid at the end of two weeks.",
+			"The more you borrow, the more you will have to repay.",
 		],
 	},
 	{
@@ -139,14 +146,7 @@ export default function InstructionSlides({
 						<div className="bg-muted/50 rounded-lg p-6 sm:p-8">
 							<div className="space-y-4 text-lg sm:text-2xl leading-relaxed text-center">
 								{slide.content.map((line, index) => (
-									<p
-										key={index}
-										className={
-											line.startsWith("•")
-												? "text-left max-w-3xl mx-auto mb-4"
-												: "text-center mb-4"
-										}
-									>
+									<p key={index} className={"text-center mb-4"}>
 										{line}
 									</p>
 								))}
@@ -280,15 +280,6 @@ export default function InstructionSlides({
 							</div>
 							<span className="text-white text-3xl">→</span>
 							<span className="text-white font-bold">Fired from Job</span>
-						</div>
-
-						{/* Additional info */}
-						<div className="space-y-2 text-center text-lg text-white">
-							<p>If you get a job, you will be paid by the week.</p>
-							<p>
-								If you get fired before payday, there will not be any pro-rated
-								pay.
-							</p>
 						</div>
 					</div>
 				)}

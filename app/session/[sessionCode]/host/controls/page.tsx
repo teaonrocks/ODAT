@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -158,14 +157,14 @@ export default function PresenterControlsPage() {
 		}
 	};
 
-	 const openCreateGroupDialog = () => {
+	const openCreateGroupDialog = () => {
 		setEditingGroup(null);
 		setGroupName("");
 		setGroupColor("#3B82F6");
 		setIsGroupDialogOpen(true);
 	};
 
-	 const openEditGroupDialog = (group: {
+	const openEditGroupDialog = (group: {
 		id: string;
 		name: string;
 		color: string;
@@ -678,7 +677,9 @@ export default function PresenterControlsPage() {
 										});
 									}}
 								>
-									{session.hideHits ? "👁️ Show Player Hits" : "🙈 Hide Player Hits"}
+									{session.hideHits
+										? "👁️ Show Player Hits"
+										: "🙈 Hide Player Hits"}
 								</Button>
 							</div>
 						</CardContent>

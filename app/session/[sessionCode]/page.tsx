@@ -25,6 +25,9 @@ type Choice = Player["choices"][0];
 type MakeChoiceMutation = ReturnType<
 	typeof useMutation<typeof api.players.makeChoice>
 >;
+type RepayLoanMutation = ReturnType<
+	typeof useMutation<typeof api.players.repayLoan>
+>;
 
 // Component for displaying game options and choices
 function GameOptions({
@@ -69,10 +72,6 @@ function GameOptions({
 	);
 
 	// Get the choice made today (if any) to show the result
-	const todaysChoice = (player.choices ?? []).find(
-		(choice: Choice) => choice.day === session.currentDay
-	);
-
 	return (
 		<Card className="w-full">
 			<CardHeader className="pb-3 sm:pb-6">
@@ -180,6 +179,135 @@ function GameOptions({
 	);
 }
 
+function Day8LoanReminder({
+	subPage,
+	player,
+	repayLoan,
+}: {
+	subPage: { title: string; content: string };
+	player: Player;
+	repayLoan: RepayLoanMutation;
+}) {
+	const [statusMessage, setStatusMessage] = useState<string | null>(null);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const loanBalance = player.loanBalance ?? 0;
+	const totalCost = Math.round(loanBalance * 1.1);
+	const hasLoan = loanBalance > 0;
+	const canRepay = hasLoan && (player.resources ?? 0) >= totalCost;
+
+	const handleRepay = async () => {
+		if (!hasLoan || !canRepay) return;
+		setIsSubmitting(true);
+		setStatusMessage(null);
+		try {
+			await repayLoan({
+				playerId: player._id,
+				repaymentAmount: loanBalance,
+			});
+			setStatusMessage(
+				`Loan repayment submitted! You paid $${loanBalance} plus 10% interest.`
+			);
+		} catch (error) {
+			setStatusMessage(
+				error instanceof Error
+					? error.message
+					: "Failed to repay loan. Please try again."
+			);
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
+	const handleIgnore = () => {
+		setStatusMessage("You chose to ignore the loan for now.");
+	};
+
+	return (
+		<main className="min-h-screen p-4 sm:p-8 flex items-center justify-center">
+			<div className="w-full max-w-4xl space-y-6">
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-3xl sm:text-4xl font-bold text-center">
+							{subPage.title}
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="bg-muted/50 rounded-lg p-6 sm:p-8">
+							<p className="text-lg sm:text-2xl leading-relaxed text-center text-muted-foreground whitespace-pre-line">
+								{subPage.content}
+							</p>
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardContent className="space-y-6 p-6 sm:p-8">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-lg sm:text-xl text-center">
+							<div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+								<div className="font-semibold text-blue-900">Cash Available</div>
+								<div className="text-3xl font-bold text-blue-900">
+									${player.resources ?? 0}
+								</div>
+							</div>
+							<div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+								<div className="font-semibold text-amber-900">Loan Balance</div>
+								<div className="text-3xl font-bold text-amber-900">
+									${loanBalance}
+								</div>
+								{hasLoan && (
+									<div className="mt-2 text-sm text-amber-800">
+										Cost with 10% interest: ${totalCost}
+									</div>
+								)}
+							</div>
+						</div>
+
+						{hasLoan ? (
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+								<Button
+									onClick={handleRepay}
+									disabled={!canRepay || isSubmitting}
+									className="h-auto py-4 flex flex-col gap-1 text-base"
+								>
+									<span>Repay Loan (${loanBalance})</span>
+									<span className="text-xs opacity-80">
+										Includes 10% interest: ${totalCost}
+									</span>
+								</Button>
+								<Button
+									variant="outline"
+									onClick={handleIgnore}
+									disabled={isSubmitting}
+									className="h-auto py-4 text-base"
+								>
+									Ignore For Now
+								</Button>
+							</div>
+						) : (
+							<div className="text-center text-sm sm:text-base text-muted-foreground">
+								You have no outstanding loans. Let the host know when you&rsquo;re ready to
+								continue.
+							</div>
+						)}
+
+						{statusMessage && (
+							<div className="text-sm text-center text-muted-foreground">
+								{statusMessage}
+							</div>
+						)}
+						{!canRepay && hasLoan && (
+							<div className="text-sm text-center text-red-600">
+								You need ${totalCost} to repay the loan but currently have $
+								{player.resources ?? 0}.
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			</div>
+		</main>
+	);
+}
+
 // Component for displaying player status section
 function PlayerStatusSection({
 	player,
@@ -205,8 +333,7 @@ export default function PlayerPage() {
 	);
 	const makeChoice = useMutation(api.players.makeChoice);
 	const assignToGroup = useMutation(api.players.assignToGroup);
-
-	const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+	const repayLoanMutation = useMutation(api.players.repayLoan);
 
 	const playerId = useMemo(() => {
 		if (typeof window === "undefined") return null;
@@ -226,7 +353,6 @@ export default function PlayerPage() {
 				playerId: playerId as Id<"players">,
 				groupId: groupId === "no-group" ? undefined : groupId,
 			});
-			setSelectedGroupId(groupId);
 		} catch (error) {
 			console.error("Failed to assign to group:", error);
 		}
@@ -392,6 +518,15 @@ export default function PlayerPage() {
 		const subPage = scenario.subPages[currentSubPage];
 
 		if (subPage) {
+			if (session.currentDay === 8 && player) {
+				return (
+					<Day8LoanReminder
+						player={player}
+						subPage={subPage}
+						repayLoan={repayLoanMutation}
+					/>
+				);
+			}
 			return <DayResult title={subPage.title} content={subPage.content} />;
 		}
 	}

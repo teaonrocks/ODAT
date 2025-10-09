@@ -104,6 +104,7 @@ export const makeChoice = mutation({
 
 		// 3 jobHits -> unemployed (don't reset jobHits)
 		if (jobHits >= 3) {
+			jobHits = 3;
 			isEmployed = false;
 		}
 

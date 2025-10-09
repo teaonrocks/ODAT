@@ -126,20 +126,6 @@ export default function HostPage() {
 					</Card>
 
 					<QRCodeCard sessionCode={session.sessionCode} />
-
-					<Card>
-						<CardContent className="py-6 space-y-4">
-							<p className="text-lg text-muted-foreground">
-								Waiting for players to join...
-							</p>
-							<Button
-								onClick={() => startInstructions({ sessionId: session._id })}
-								className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
-							>
-								Start Instructions
-							</Button>
-						</CardContent>
-					</Card>
 				</div>
 			</main>
 		);
@@ -219,53 +205,79 @@ export default function HostPage() {
 
 					{/* Options */}
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-						{/* Option A - Blue */}
-						<Card className="bg-blue-600 flex flex-col">
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2"></CardTitle>
-							</CardHeader>
-							<CardContent className="flex-1 flex flex-col justify-between space-y-4">
-								<p className="text-base sm:text-3xl leading-relaxed text-white text-center h-full">
-									{scenario.optionA_text}
-								</p>
-								<div className="text-right">
-									<div className="inline-block bg-neutral-50 text-white px-4 py-2 rounded-full">
-										<span className="text-xl font-bold text-black">
-											$
-											{Math.abs(
-												scenario.optionA_consequence.resourceChange || 0
-											)}
-										</span>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
+						<div className="flex flex-col gap-4 h-full">
+							<div className="flex-1">
+								{/* Option A - Blue */}
+								<Card className="bg-blue-600 flex flex-col h-full">
+									<CardHeader>
+										<CardTitle className="flex items-center gap-2"></CardTitle>
+									</CardHeader>
+									<CardContent className="flex-1 flex flex-col justify-between space-y-4">
+										<p className="text-base sm:text-3xl leading-relaxed text-white text-center h-full">
+											{scenario.optionA_text}
+										</p>
+										<div className="text-right">
+											<div className="inline-block bg-neutral-50 text-white px-4 py-2 rounded-full">
+												<span className="text-xl font-bold text-black">
+													$
+													{Math.abs(
+														scenario.optionA_consequence.resourceChange || 0
+													)}
+												</span>
+											</div>
+										</div>
+									</CardContent>
+								</Card>
+							</div>
+							{scenario.optionA_details && (
+								<Card className="bg-blue-50 border border-blue-200 text-blue-900">
+									<CardContent className="text-sm sm:text-lg space-y-2 text-center">
+										{scenario.optionA_details.map((detail, index) => (
+											<p key={index}>{detail}</p>
+										))}
+									</CardContent>
+								</Card>
+							)}
+						</div>
 
-						{/* Option B - Yellow */}
-						<Card className="bg-yellow-600 flex flex-col">
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									{/* <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-lg font-bold">
-										Option B
-									</span> */}
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="flex-1 flex flex-col justify-between space-y-4">
-								<p className="text-base sm:text-3xl leading-relaxed text-white text-center ">
-									{scenario.optionB_text}
-								</p>
-								<div className="text-right">
-									<div className="inline-block bg-neutral-50 text-black px-4 py-2 rounded-full">
-										<span className="text-xl font-bold">
-											$
-											{Math.abs(
-												scenario.optionB_consequence.resourceChange || 0
-											)}
-										</span>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
+						<div className="flex flex-col gap-4 h-full">
+							<div className="flex-1">
+								{/* Option B - Yellow */}
+								<Card className="bg-yellow-600 flex flex-col h-full">
+									<CardHeader>
+										<CardTitle className="flex items-center gap-2">
+											{/* <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-lg font-bold">
+												Option B
+											</span> */}
+										</CardTitle>
+									</CardHeader>
+									<CardContent className="flex-1 flex flex-col justify-between space-y-4">
+										<p className="text-base sm:text-3xl leading-relaxed text-white text-center ">
+											{scenario.optionB_text}
+										</p>
+										<div className="text-right">
+											<div className="inline-block bg-neutral-50 text-black px-4 py-2 rounded-full">
+												<span className="text-xl font-bold">
+													$
+													{Math.abs(
+														scenario.optionB_consequence.resourceChange || 0
+													)}
+												</span>
+											</div>
+										</div>
+									</CardContent>
+								</Card>
+							</div>
+							{scenario.optionB_details && (
+								<Card className="bg-yellow-50 border border-yellow-200 text-yellow-900">
+									<CardContent className="text-sm sm:text-lg space-y-2 text-center">
+										{scenario.optionB_details.map((detail, index) => (
+											<p key={index}>{detail}</p>
+										))}
+									</CardContent>
+								</Card>
+							)}
+						</div>
 					</div>
 
 					{/* Instructions */}

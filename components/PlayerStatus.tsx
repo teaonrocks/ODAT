@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
@@ -9,9 +9,21 @@ import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Player = Doc<"players">;
 
@@ -73,6 +85,10 @@ function HitsDisplay({
 export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 	const [borrowDialog, setBorrowDialog] = useState(false);
 	const [repayDialog, setRepayDialog] = useState(false);
+	const [pawnDialog, setPawnDialog] = useState(false);
+	const [redeemDialog, setRedeemDialog] = useState(false);
+	const [jobTerminationDialog, setJobTerminationDialog] = useState(false);
+	const hasShownTerminationDialogRef = useRef(false);
 
 	const borrowMoney = useMutation(api.players.borrowMoney);
 	const pawnRing = useMutation(api.players.pawnRing);
@@ -103,6 +119,7 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 	const handlePawnRing = async () => {
 		try {
 			await pawnRing({ playerId: player._id });
+			setPawnDialog(false);
 		} catch (error) {
 			alert(error instanceof Error ? error.message : "Failed to pawn ring");
 		}
@@ -111,10 +128,20 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 	const handleRedeemRing = async () => {
 		try {
 			await redeemRing({ playerId: player._id });
+			setRedeemDialog(false);
 		} catch (error) {
 			alert(error instanceof Error ? error.message : "Failed to redeem ring");
 		}
 	};
+
+	useEffect(() => {
+		if (player.jobHits >= 3 && !hasShownTerminationDialogRef.current) {
+			setJobTerminationDialog(true);
+			hasShownTerminationDialogRef.current = true;
+		} else if (player.jobHits < 3) {
+			hasShownTerminationDialogRef.current = false;
+		}
+	}, [player.jobHits]);
 
 	return (
 		<>
@@ -135,7 +162,7 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 						</Button>
 
 						<Button
-							onClick={handlePawnRing}
+							onClick={() => setPawnDialog(true)}
 							disabled={player.ringPawned}
 							className="text-sm py-3"
 						>
@@ -151,7 +178,7 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 						</Button>
 
 						<Button
-							onClick={handleRedeemRing}
+							onClick={() => setRedeemDialog(true)}
 							disabled={!player.ringPawned || player.resources < 159}
 							className="text-sm py-3"
 						>
@@ -234,35 +261,29 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Borrow Money</DialogTitle>
+						<DialogDescription>
+							Choose an amount to borrow. Interest of 10% will apply when repaying.
+						</DialogDescription>
 					</DialogHeader>
-					<div className="space-y-4">
-						<p className="text-sm text-gray-600">
-							Choose an amount to borrow. Interest of 10% will apply when
-							repaying.
-						</p>
-						<div className="grid grid-cols-2 gap-2">
-							<Button onClick={() => handleBorrow(100)} className="text-sm">
-								Borrow $100
-							</Button>
-							<Button onClick={() => handleBorrow(200)} className="text-sm">
-								Borrow $200
-							</Button>
-							<Button onClick={() => handleBorrow(300)} className="text-sm">
-								Borrow $300
-							</Button>
-							<Button onClick={() => handleBorrow(400)} className="text-sm">
-								Borrow $400
-							</Button>
-						</div>
-						<div className="flex justify-end">
-							<Button
-								onClick={() => setBorrowDialog(false)}
-								className="bg-gray-500 text-white hover:bg-gray-600"
-							>
-								Cancel
-							</Button>
-						</div>
+					<div className="grid grid-cols-2 gap-2">
+						<Button onClick={() => handleBorrow(100)} className="text-sm">
+							Borrow $100
+						</Button>
+						<Button onClick={() => handleBorrow(200)} className="text-sm">
+							Borrow $200
+						</Button>
+						<Button onClick={() => handleBorrow(300)} className="text-sm">
+							Borrow $300
+						</Button>
+						<Button onClick={() => handleBorrow(400)} className="text-sm">
+							Borrow $400
+						</Button>
 					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setBorrowDialog(false)}>
+							Cancel
+						</Button>
+					</DialogFooter>
 				</DialogContent>
 			</Dialog>
 
@@ -271,52 +292,103 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Repay Loan</DialogTitle>
+						<DialogDescription>
+							Choose an amount to repay. 10% interest will be added to the repayment
+							amount.
+						</DialogDescription>
 					</DialogHeader>
-					<div className="space-y-4">
-						<div className="text-sm text-gray-600">
-							Current loan balance: ${player.loanBalance}
-						</div>
-						<p className="text-sm text-gray-600">
-							Choose an amount to repay. 10% interest will be added to the
-							repayment amount.
-						</p>
-
-						{/* Repayment buttons */}
-						<div className="space-y-2">
-							<div className="grid grid-cols-2 gap-2">
-								{[100, 200, 300, 400].map((amount) => (
-									<Button
-										key={amount}
-										onClick={() => handleRepay(amount)}
-										disabled={amount > player.loanBalance}
-										className="text-sm"
-									>
-										Repay ${amount} (Cost: ${Math.round(amount * 1.1)})
-									</Button>
-								))}
-								{player.loanBalance > 0 && (
-									<Button
-										onClick={() => handleRepay(player.loanBalance)}
-										className="text-sm col-span-2"
-									>
-										Pay All ${player.loanBalance} (Cost: $
-										{Math.round(player.loanBalance * 1.1)})
-									</Button>
-								)}
-							</div>
-						</div>
-
-						<div className="flex justify-end">
-							<Button
-								onClick={() => setRepayDialog(false)}
-								className="bg-gray-500 text-white hover:bg-gray-600"
-							>
-								Cancel
-							</Button>
+					<p className="text-sm text-muted-foreground">
+						{`Current loan balance: $${player.loanBalance}`}
+					</p>
+					<div className="space-y-2">
+						<div className="grid grid-cols-2 gap-2">
+							{[100, 200, 300, 400].map((amount) => (
+								<Button
+									key={amount}
+									onClick={() => handleRepay(amount)}
+									disabled={amount > player.loanBalance}
+									className="text-sm"
+								>
+									Repay ${amount} (Cost: ${Math.round(amount * 1.1)})
+								</Button>
+							))}
+							{player.loanBalance > 0 && (
+								<Button
+									onClick={() => handleRepay(player.loanBalance)}
+									className="text-sm col-span-2"
+								>
+									Pay All ${player.loanBalance} (Cost: $
+									{Math.round(player.loanBalance * 1.1)})
+								</Button>
+							)}
 						</div>
 					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setRepayDialog(false)}>
+							Cancel
+						</Button>
+					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* Pawn Ring Confirmation */}
+			<AlertDialog open={pawnDialog} onOpenChange={setPawnDialog}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Pawn Wedding Ring</AlertDialogTitle>
+						<AlertDialogDescription>
+							Pawning your wedding ring will give you $150 immediately, but you will
+							lose the ring until you redeem it for $159 later.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction onClick={handlePawnRing} disabled={player.ringPawned}>
+							Confirm Pawn ($150)
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+
+			{/* Redeem Ring Confirmation */}
+			<AlertDialog open={redeemDialog} onOpenChange={setRedeemDialog}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Redeem Wedding Ring</AlertDialogTitle>
+						<AlertDialogDescription>
+							Redeeming your wedding ring costs $159. Make sure you have enough cash
+							on hand before confirming.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={handleRedeemRing}
+							disabled={!player.ringPawned || player.resources < 159}
+						>
+							Confirm Redeem ($159)
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+
+			{/* Job Termination Alert */}
+			<AlertDialog open={jobTerminationDialog} onOpenChange={setJobTerminationDialog}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>You&apos;ve Been Fired</AlertDialogTitle>
+						<AlertDialogDescription>
+							You have been fired from your job. You will not receive any money on the next
+							payday. You still have to keep making decisions—life goes on.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogAction onClick={() => setJobTerminationDialog(false)}>
+							I Understand
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</>
 	);
 }
