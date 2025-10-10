@@ -202,7 +202,13 @@ function LoanReminderSubPage({
 	const hasObligation = totalCost > 0;
 	const canResolve = hasObligation && resources >= totalCost;
 	const alreadyResolved = player.loanReminderResolvedDay === day;
+	const isDay14Reminder = day === 14;
 	const isPayDisabled = !canResolve || isSubmitting || alreadyResolved;
+	const ignoreButtonLabel = isDay14Reminder
+		? "Insufficient Funds"
+		: "Ignore For Now";
+	const isIgnoreDisabled =
+		isSubmitting || alreadyResolved || (isDay14Reminder && canResolve);
 	const summaryGridCols = "sm:grid-cols-3";
 	const ringStatus = ringPawned ? "Pawned" : "Available";
 	const ringNote = (() => {
@@ -286,6 +292,14 @@ function LoanReminderSubPage({
 			<div className="w-full max-w-4xl space-y-6">
 				<Card>
 					<CardContent className="space-y-6 p-6 pt-4 sm:p-8 sm:pt-6">
+						<div className="space-y-2 text-center sm:text-left">
+							<h2 className="text-lg sm:text-xl font-semibold text-foreground">
+								{subPage.title}
+							</h2>
+							<p className="text-sm sm:text-base text-muted-foreground">
+								{subPage.content}
+							</p>
+						</div>
 						<div
 							className={`grid grid-cols-1 ${summaryGridCols} gap-4 text-lg sm:text-xl items-start`}
 						>
@@ -347,10 +361,15 @@ function LoanReminderSubPage({
 								<Button
 									variant="outline"
 									onClick={() => handleAction("ignore")}
-									disabled={isSubmitting || alreadyResolved}
+									disabled={isIgnoreDisabled}
 									className="h-auto py-4 text-base"
+									title={
+										isDay14Reminder && canResolve
+											? "You have enough cash to resolve this reminder. Let your host know you're ready to pay."
+											: undefined
+									}
 								>
-									Ignore For Now
+									{ignoreButtonLabel}
 								</Button>
 							</div>
 						) : (
@@ -393,7 +412,7 @@ function DayResultHoldingPage({ day }: { day: number }) {
 			<Card className="w-full max-w-3xl">
 				<CardHeader>
 					<CardTitle className="text-2xl sm:text-3xl text-center">
-						One day at a time
+						Day {day}
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4 text-center">
