@@ -45,6 +45,8 @@ function GameOptions({
 	playerId: string | null;
 	makeChoice: MakeChoiceMutation;
 }) {
+	const [isSubmittingChoice, setIsSubmittingChoice] = useState(false);
+	const [choiceError, setChoiceError] = useState<string | null>(null);
 	// Check if it's Day 14 and player is unemployed
 	const isDay14 = session.currentDay === 14;
 	const salaryDisabled = isDay14 && !player.isEmployed;
@@ -100,17 +102,27 @@ function GameOptions({
 							<div className="space-y-2">
 								<Button
 									onClick={async () => {
-										if (!playerId) return;
+										if (!playerId || isSubmittingChoice) return;
+										setChoiceError(null);
+										setIsSubmittingChoice(true);
 										try {
-											await makeChoice({
+											const result = await makeChoice({
 												playerId: playerId as Id<"players">,
 												day: session.currentDay,
 												choice: "A",
 												consequence: scenario.optionA_consequence,
 											});
+											if ((result as { status?: string } | undefined)?.status === "already-made") {
+												setChoiceError("You've already submitted today's choice. Hang tight!");
+											}
 										} catch (error) {
-											// Error handling could be added here if needed
-											console.error("Failed to make choice:", error);
+											setChoiceError(
+												error instanceof Error
+													? error.message
+												: "We couldn’t submit that choice. Please try again."
+											);
+										} finally {
+											setIsSubmittingChoice(false);
 										}
 									}}
 									disabled={
@@ -118,7 +130,8 @@ function GameOptions({
 											scenario.optionA_text.toLowerCase().includes("salary")) ||
 										!canAffordOptionA ||
 										day5OptionBDisabled ||
-										day14OptionADisabled
+										day14OptionADisabled ||
+										isSubmittingChoice
 									}
 									className={`w-full h-20 sm:h-24 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg sm:text-xl ${!canAffordOptionA || day5OptionBDisabled || day14OptionADisabled ? "opacity-50" : ""}`}
 								>
@@ -139,17 +152,27 @@ function GameOptions({
 							<div className="space-y-2">
 								<Button
 									onClick={async () => {
-										if (!playerId) return;
+										if (!playerId || isSubmittingChoice) return;
+										setChoiceError(null);
+										setIsSubmittingChoice(true);
 										try {
-											await makeChoice({
+											const result = await makeChoice({
 												playerId: playerId as Id<"players">,
 												day: session.currentDay,
 												choice: "B",
 												consequence: scenario.optionB_consequence,
 											});
+											if ((result as { status?: string } | undefined)?.status === "already-made") {
+												setChoiceError("You've already submitted today's choice. Hang tight!");
+											}
 										} catch (error) {
-											// Error handling could be added here if needed
-											console.error("Failed to make choice:", error);
+											setChoiceError(
+												error instanceof Error
+													? error.message
+												: "We couldn’t submit that choice. Please try again."
+											);
+										} finally {
+											setIsSubmittingChoice(false);
 										}
 									}}
 									disabled={
@@ -157,7 +180,8 @@ function GameOptions({
 											scenario.optionB_text.toLowerCase().includes("salary")) ||
 										!canAffordOptionB ||
 										day5OptionADisabled ||
-										day14OptionBDisabled
+										day14OptionBDisabled ||
+										isSubmittingChoice
 									}
 									className={`w-full h-20 sm:h-24 bg-yellow-600 hover:bg-yellow-600 text-white font-bold text-lg sm:text-xl ${!canAffordOptionB || day5OptionADisabled || day14OptionBDisabled ? "opacity-50" : ""}`}
 								>
@@ -173,7 +197,12 @@ function GameOptions({
 									</p>
 								)}
 							</div>
-						</div>
+							</div>
+							{choiceError && (
+								<p className="text-xs sm:text-sm text-red-600 text-center">
+									{choiceError}
+								</p>
+							)}
 					</div>
 				)}
 			</CardContent>

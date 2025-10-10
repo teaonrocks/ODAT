@@ -67,7 +67,14 @@ export const makeChoice = mutation({
 		// Check if player has already made a choice for this day
 		const existingChoice = (player.choices ?? []).find((c) => c.day === day);
 		if (existingChoice) {
-			throw new Error("You have already made a choice for this day");
+			return {
+				status: "already-made",
+				resources: player.resources ?? 0,
+				familyHits: player.familyHits ?? 0,
+				healthHits: player.healthHits ?? 0,
+				jobHits: player.jobHits ?? 0,
+				isEmployed: player.isEmployed ?? false,
+			};
 		}
 
 		// Apply resource change
@@ -119,6 +126,7 @@ export const makeChoice = mutation({
 		});
 
 		return {
+			status: "success",
 			resources: newResources,
 			familyHits,
 			healthHits,
