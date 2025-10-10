@@ -7,7 +7,10 @@ import { api } from "@/convex/_generated/api";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlayerStatus } from "@/components/PlayerStatus";
+import {
+	PlayerStatus,
+	JOB_TERMINATION_STORAGE_KEY,
+} from "@/components/PlayerStatus";
 import DayTransition from "@/components/DayTransition";
 import {
 	Select,
@@ -463,6 +466,13 @@ export default function PlayerPage() {
 		api.players.getById,
 		playerId ? { playerId: playerId as Id<"players"> } : "skip"
 	);
+
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		if (session?.currentDay === 1) {
+			localStorage.setItem(JOB_TERMINATION_STORAGE_KEY, "false");
+		}
+	}, [session?.currentDay]);
 
 	// Handle group selection
 	const handleGroupSelection = async (groupId: string) => {

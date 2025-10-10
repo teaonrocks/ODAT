@@ -27,6 +27,8 @@ import {
 
 type Player = Doc<"players">;
 
+export const JOB_TERMINATION_STORAGE_KEY = "odat_job_termination_alert_shown";
+
 interface PlayerStatusProps {
 	player: Player;
 	showHits?: boolean;
@@ -135,11 +137,20 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 	};
 
 	useEffect(() => {
-		if (player.jobHits >= 3 && !hasShownTerminationDialogRef.current) {
+		if (typeof window === "undefined") return;
+		const hasSeenAlert = localStorage.getItem(JOB_TERMINATION_STORAGE_KEY);
+		hasShownTerminationDialogRef.current = hasSeenAlert === "true";
+	}, []);
+
+	useEffect(() => {
+		if (
+			player.jobHits >= 3 &&
+			!hasShownTerminationDialogRef.current &&
+			typeof window !== "undefined"
+		) {
 			setJobTerminationDialog(true);
 			hasShownTerminationDialogRef.current = true;
-		} else if (player.jobHits < 3) {
-			hasShownTerminationDialogRef.current = false;
+			localStorage.setItem(JOB_TERMINATION_STORAGE_KEY, "true");
 		}
 	}, [player.jobHits]);
 
