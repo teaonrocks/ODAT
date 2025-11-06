@@ -87,7 +87,7 @@ export const startGame = mutation({
 		if (!session) throw new Error("Session not found");
 		await ctx.db.patch(sessionId, {
 			gameState: "DAY_TRANSITION",
-			currentDay: 1,
+			currentDay: 0,
 		});
 		return true;
 	},

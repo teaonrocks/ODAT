@@ -31,6 +31,107 @@ type HandleLoanReminderMutation = ReturnType<
 	typeof useMutation<typeof api.players.handleLoanReminder>
 >;
 
+// Component for displaying Day 0 readiness screen
+function Day0ReadyScreen({
+	session,
+	scenario,
+	player,
+	playerId,
+	makeChoice,
+}: {
+	session: Session;
+	scenario: Scenario;
+	player: Player;
+	playerId: string | null;
+	makeChoice: MakeChoiceMutation;
+}) {
+	const [isSubmittingChoice, setIsSubmittingChoice] = useState(false);
+	const [choiceError, setChoiceError] = useState<string | null>(null);
+
+	const hasChosenToday = (player.choices ?? []).some(
+		(choice: Choice) => choice.day === 0
+	);
+
+	const handleReady = async () => {
+		if (!playerId || isSubmittingChoice) return;
+		setChoiceError(null);
+		setIsSubmittingChoice(true);
+		try {
+			await makeChoice({
+				playerId: playerId as Id<"players">,
+				day: 0,
+				choice: "A",
+				consequence: scenario.optionA_consequence,
+			});
+		} catch (error) {
+			setChoiceError(
+				error instanceof Error
+					? error.message
+					: "We couldn't submit that choice. Please try again."
+			);
+		} finally {
+			setIsSubmittingChoice(false);
+		}
+	};
+
+	return (
+		<Card className="w-full">
+			<CardHeader className="pb-3 sm:pb-6">
+				<CardTitle className="text-lg sm:text-xl text-center">
+					Day 0 - Prepare Yourself
+				</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-4 sm:space-y-6">
+				{hasChosenToday ? (
+					<div className="space-y-3 sm:space-y-4">
+						<div className="p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg flex justify-center items-center">
+							<h3 className="font-medium text-green-800 text-sm sm:text-base">
+								✓ Ready to Begin
+							</h3>
+						</div>
+						<p className="text-center text-muted-foreground text-xs sm:text-sm px-2">
+							Waiting for the host to start Day 1...
+						</p>
+					</div>
+				) : (
+					<div className="space-y-4 sm:space-y-6">
+						<div className="text-center space-y-3 sm:space-y-4">
+							<p className="text-base sm:text-lg text-foreground font-medium">
+								{scenario.prompt}
+							</p>
+							<div className="grid grid-cols-2 gap-3 sm:gap-4 text-sm sm:text-base">
+								<div className="p-3 bg-muted/50 rounded-lg text-center">
+									<div className="text-muted-foreground mb-1">Starting Resources</div>
+									<div className="font-bold text-lg">${player.resources}</div>
+								</div>
+								<div className="p-3 bg-muted/50 rounded-lg text-center">
+									<div className="text-muted-foreground mb-1">Employment</div>
+									<div className="font-bold text-lg">
+										{player.isEmployed ? "Employed" : "Unemployed"}
+									</div>
+								</div>
+							</div>
+						</div>
+						<Button
+							onClick={handleReady}
+							disabled={isSubmittingChoice}
+							className="w-full h-16 sm:h-20 text-lg sm:text-xl font-bold bg-primary hover:bg-primary/90"
+							size="lg"
+						>
+							{isSubmittingChoice ? "Preparing..." : "I'm Ready to Begin"}
+						</Button>
+						{choiceError && (
+							<p className="text-xs sm:text-sm text-red-600 text-center">
+								{choiceError}
+							</p>
+						)}
+					</div>
+				)}
+			</CardContent>
+		</Card>
+	);
+}
+
 // Component for displaying game options and choices
 function GameOptions({
 	session,
@@ -478,7 +579,7 @@ export default function PlayerPage() {
 	const session = useQuery(api.sessions.getSessionByCode, { sessionCode });
 	const scenario = useQuery(
 		api.scenarios.get,
-		session?.currentDay ? { day: session.currentDay } : "skip"
+		session?.currentDay !== undefined ? { day: session.currentDay } : "skip"
 	);
 	const makeChoice = useMutation(api.players.makeChoice);
 	const assignToGroup = useMutation(api.players.assignToGroup);
@@ -719,6 +820,24 @@ export default function PlayerPage() {
 								</div>
 							</CardContent>
 						</Card>
+					</div>
+				</main>
+			);
+		}
+
+		// Special handling for Day 0
+		if (session.currentDay === 0) {
+			return (
+				<main className="min-h-screen p-2 sm:p-4 space-y-2 sm:space-y-4">
+					<div className="max-w-4xl mx-auto flex flex-col gap-2 sm:gap-4">
+						<PlayerStatusSection player={player} showHits={!session.hideHits} />
+						<Day0ReadyScreen
+							session={session}
+							scenario={scenario}
+							player={player}
+							playerId={playerId}
+							makeChoice={makeChoice}
+						/>
 					</div>
 				</main>
 			);

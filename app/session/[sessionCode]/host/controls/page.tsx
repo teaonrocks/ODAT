@@ -435,21 +435,35 @@ export default function PresenterControlsPage() {
 									<div className="space-y-3">
 										<div className="p-3 bg-green-50 border border-green-200 rounded-lg">
 											<div className="text-sm font-medium text-green-800">
-												Game In Progress
+												{session.currentDay === 0
+													? "Day 0 - Preparation Phase"
+													: "Game In Progress"}
 											</div>
 											<div className="text-xs text-green-600">
-												Day {session.currentDay} - Present scenario and advance
-												when ready
+												{session.currentDay === 0
+													? "Players are preparing to begin their journey"
+													: `Day ${session.currentDay} - Present scenario and advance when ready`}
 											</div>
 										</div>
 
 										{/* Player Choice Counter */}
-										<ProgressSummaryCard
-											title="Player Choices"
-											resolvedCount={playerChoiceStats.resolvedCount}
-											totalCount={playerChoiceStats.totalCount}
-											resolvedLabel="players have made their choice"
-										/>
+										{session.currentDay !== 0 && (
+											<ProgressSummaryCard
+												title="Player Choices"
+												resolvedCount={playerChoiceStats.resolvedCount}
+												totalCount={playerChoiceStats.totalCount}
+												resolvedLabel="players have made their choice"
+											/>
+										)}
+
+										{session.currentDay === 0 && (
+											<ProgressSummaryCard
+												title="Ready Status"
+												resolvedCount={playerChoiceStats.resolvedCount}
+												totalCount={playerChoiceStats.totalCount}
+												resolvedLabel="players are ready to begin"
+											/>
+										)}
 
 										<div className="space-y-2">
 											<Button
@@ -468,7 +482,9 @@ export default function PresenterControlsPage() {
 												className="w-full"
 												size="lg"
 											>
-												⏭️ Next Day
+												{session.currentDay === 0
+													? "🚀 Begin Day 1"
+													: "⏭️ Next Day"}
 											</Button>
 										</div>
 									</div>

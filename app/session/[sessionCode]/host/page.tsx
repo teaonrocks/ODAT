@@ -52,7 +52,7 @@ export default function HostPage() {
 	const session = useQuery(api.sessions.getSessionByCode, { sessionCode });
 	const scenario = useQuery(
 		api.scenarios.get,
-		session?.currentDay ? { day: session.currentDay } : "skip"
+		session?.currentDay !== undefined ? { day: session.currentDay } : "skip"
 	);
 	const showDayScenario = useMutation(api.sessions.showDayScenario);
 
@@ -178,6 +178,44 @@ export default function HostPage() {
 
 	// Main game slide - scenario presentation
 	if (session.gameState === "IN_GAME" && scenario) {
+		// Special display for Day 0
+		if (session.currentDay === 0) {
+			return (
+				<main className="min-h-screen flex items-center justify-center bg-background p-8">
+					<div className="w-full max-w-[1200px] space-y-12">
+						<Card className="bg-background/90">
+							<CardHeader>
+								<div className="flex justify-center items-center">
+									<CardTitle className="text-4xl sm:text-5xl font-bold">
+										Prepare Yourself
+									</CardTitle>
+								</div>
+							</CardHeader>
+						</Card>
+
+						<Card className="bg-background/90">
+							<CardContent>
+								<div className="bg-muted/40 rounded-3xl px-10 py-12">
+									<div className="space-y-6 text-2xl sm:text-3xl leading-snug text-center">
+										<p className="font-semibold mb-4">You are a single parent</p>
+										<p>Two school-going children</p>
+										<p>One-room rental flat</p>
+										<p className="font-semibold mt-6">Unemployed, $150 remaining</p>
+										<p className="text-3xl sm:text-4xl font-bold mt-8">
+											Can you make it through
+										</p>
+										<p className="text-3xl sm:text-4xl font-bold">
+											the next two weeks?
+										</p>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+				</main>
+			);
+		}
+
 		return (
 			<main className="min-h-screen flex items-center justify-center bg-background p-8">
 				<div className="w-full max-w-[1200px] space-y-12">

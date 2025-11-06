@@ -49,13 +49,35 @@ export const seed = mutation({
 
 		const scenarios: Scenario[] = [
 			{
+				day: 0,
+				prompt:
+					"You are a single parent with two school-going children, living in a one-room rental flat. You are unemployed with $150 left. Can you make it through the next two weeks?",
+				optionA_text: "I'm ready to begin",
+				optionB_text: "I'm ready to begin",
+				optionA_consequence: {
+					resourceChange: 0,
+					narrative: "Take a deep breath. Your journey begins now.",
+				},
+				optionB_consequence: {
+					resourceChange: 0,
+					narrative: "Take a deep breath. Your journey begins now.",
+				},
+				subPages: [
+					{
+						title: "Before You Begin",
+						content:
+							"Close your eyes, take a deep breath, and put on the hat of a single parent. Remember: every decision matters when resources are limited.",
+					},
+				],
+			},
+			{
 				day: 1,
 				prompt: "You have an interview for a new job.",
 				optionA_text: "Take public transport to and fro",
 				optionB_text: "Walk 1.5 hours to the interview and 1.5 hours back",
 				optionA_consequence: {
 					resourceChange: -6,
-					narrative: "You arrived at the interview on time and well-rested.",
+					narrative: "You arrived at the interview full of energy and on time.",
 				},
 				optionB_consequence: {
 					resourceChange: 0,
@@ -72,8 +94,8 @@ export const seed = mutation({
 			{
 				day: 2,
 				prompt: "It's time to purchase groceries for the week.",
-				optionA_text: "Less nutritious option",
-				optionB_text: "Nutritious option",
+				optionA_text: "Less nutritious option (canned food, instant noodles)",
+				optionB_text: "Nutritious option (fresh fruits, vegetables, meat)",
 				optionA_details: [
 					"Instant noodles",
 					"Processed frozen meals",
@@ -87,14 +109,14 @@ export const seed = mutation({
 				optionA_consequence: {
 					resourceChange: -70,
 					narrative:
-						"Parents from low-income families also lack time and energy to cook healthy meals.",
+						"By choosing a less nutritious option, your family suffered the ill effects of an unhealthy diet.",
 					familyHits: 1,
 					healthHits: 1,
 				},
 				optionB_consequence: {
 					resourceChange: -140,
 					narrative:
-						"It was expensive, but you've provided healthy food for your family.",
+						"It was expensive, but you provided healthy food for your family.",
 				},
 			},
 			{
@@ -109,7 +131,7 @@ export const seed = mutation({
 				},
 				optionB_consequence: {
 					resourceChange: -3,
-					narrative: "Being late on your first day leaves a bad impression.",
+					narrative: "Being late on your first day left a bad impression.",
 					jobHits: 1,
 				},
 			},
@@ -118,7 +140,8 @@ export const seed = mutation({
 				prompt:
 					"Your children need to buy assessment books and stationery supplies.",
 				optionA_text: "Purchase only the necessary items",
-				optionB_text: "Purchase additional supplies to get a discount",
+				optionB_text:
+					"Purchase additional supplies up to $100 to get a discount of 25%",
 				optionB_details: [
 					"Purchase supplies up to $100 to receive 25% discount.",
 				],
@@ -134,7 +157,8 @@ export const seed = mutation({
 				subPages: [
 					{
 						title: "Limited Cashflow",
-						content: "Unable to take advantage of savings from bulk purchase.",
+						content:
+							"Low-income families are often unable to take advantage of savings from bulk purchase.",
 					},
 				],
 			},
@@ -144,16 +168,17 @@ export const seed = mutation({
 				optionA_text: "Pay bills",
 				optionB_text: "Don't pay",
 				optionB_details: [
-					"Reduced gas, water and elcetricity supplies + late payment charges for rent.",
+					"Reduced gas, water, and electricity supplies + late payment charges for rent.",
 				],
 				optionA_consequence: {
 					resourceChange: -120,
 					narrative:
-						"Your bills are paid, keeping the lights on and your housing secure.",
+						"Your bills were paid, ensuring a steady supply of water, gas, and electricity.",
 				},
 				optionB_consequence: {
 					resourceChange: 0,
-					narrative: "You'll face reduced utilities and late fees for rent.",
+					narrative:
+						"You faced utilities disruptions and extra charges for late rent payment.",
 					familyHits: 2,
 				},
 			},
@@ -164,12 +189,12 @@ export const seed = mutation({
 				optionB_text: "Be uncontactable at work",
 				optionA_consequence: {
 					resourceChange: -20,
-					narrative: "You can be contacted for work and family emergencies.",
+					narrative: "You could be contacted for work and family emergencies.",
 				},
 				optionB_consequence: {
 					resourceChange: 0,
 					narrative:
-						"Being uncontactable is risky and could cause problems with your employer.",
+						"Your employer was furious with you for being uncontactable at work.",
 					jobHits: 1,
 				},
 			},
@@ -177,16 +202,16 @@ export const seed = mutation({
 				day: 7,
 				prompt: "You are running out of food at home.",
 				optionA_text: "Buy additional groceries",
-				optionB_text: "Skip meals at home",
+				optionB_text: "Skip your meals at home",
 				optionA_consequence: {
 					resourceChange: -50,
 					narrative:
-						"You bought more food to ensure your family doesn't go hungry.",
+						"You bought more food to ensure your family didn't go hungry.",
 				},
 				optionB_consequence: {
 					resourceChange: 0,
 					narrative:
-						"Skipping meals takes a toll on your family's health and well-being.",
+						"Skipping meals took a toll on your health and well-being.",
 					healthHits: 1,
 				},
 			},
@@ -195,7 +220,7 @@ export const seed = mutation({
 				prompt: "PAYDAY after one week of work!",
 				optionA_text: "Keep full salary",
 				optionB_text:
-					"Keep remaining salary after paying rent and utilities arrears",
+					"Keep remaining salary after paying rent and utilities arrears of $130",
 
 				optionA_consequence: {
 					resourceChange: 300,
@@ -209,9 +234,9 @@ export const seed = mutation({
 				},
 				subPages: [
 					{
-						title: "Loan & Ring Reminder",
+						title: "Loan & Ring",
 						content:
-							"You could choose to repay your loan or redeem your wedding ring.\nHealth Hit! (if you have outstanding loans)\nNo consequences if you do not redeem your wedding ring at this point.",
+							"You could choose to repay your loan. If you don't, you will receive one Health Hit.\nNo penalty for not redeeming your ring at this moment.",
 					},
 				],
 			},
@@ -224,19 +249,19 @@ export const seed = mutation({
 				optionA_consequence: {
 					resourceChange: -20,
 					narrative:
-						"Your daughter gets to celebrate with her friend, strengthening her social bonds.",
+						"Your daughter got to celebrate with her friend, strengthening their friendship.",
 				},
 				optionB_consequence: {
 					resourceChange: 0,
 					narrative:
-						"The 'need to belong' is often sacrificed to meet more immediate physical needs.",
+						"Your daughter blamed you for losing friends after you told her to decline a birthday invitation.",
 					familyHits: 1,
 				},
 				subPages: [
 					{
-						title: "Belonging Sacrificed",
+						title: "Physical Needs Prioritised",
 						content:
-							'Money is needed for children and youths to join their friends in social gatherings.\nThis "need to belong" is often sacrificed to meet the more visible and immediate physical needs.',
+							"The 'need to belong' is often sacrificed to meet the more visible and immediate physical needs.",
 					},
 				],
 			},
@@ -244,7 +269,7 @@ export const seed = mutation({
 				day: 10,
 				prompt: "Your stove breaks down.",
 				optionA_text: "Buy a new stove",
-				optionB_text: "Eat out for a week and delay",
+				optionB_text: "Eat out for a week and delay solving the stove issue",
 				optionA_details: ["Purchase refurbished stove", "One-time repair cost"],
 				optionB_details: [
 					"3 take-away meals per day",
@@ -253,18 +278,18 @@ export const seed = mutation({
 				optionA_consequence: {
 					resourceChange: -120,
 					narrative:
-						"A large but necessary expense. You can now cook at home again.",
+						"A large but necessary expense. You could now cook at home again.",
 				},
 				optionB_consequence: {
 					resourceChange: -80,
 					narrative:
-						"This seems cheaper now, but the stove is still broken and eating out is less healthy.",
+						"You postponed addressing the broken stove by choosing to eat out, but the issue persisted.",
 				},
 				subPages: [
 					{
-						title: "No Savings Cushion",
+						title: "No Savings",
 						content:
-							"Low-income families have little or no savings to fall back on when they are faced with huge unforeseen expenses.\nThey often end up borrowing money to tide them over.",
+							"Low-income families have little or no savings to meet huge unforeseen expenses.",
 					},
 				],
 			},
@@ -272,12 +297,13 @@ export const seed = mutation({
 				day: 11,
 				prompt:
 					"Your daughter is in school and running a high fever. Her teacher called you.",
-				optionA_text: "Ask for time-off; go to polyclinic",
-				optionB_text: "Leave her in sick bay; go to private clinic later",
+				optionA_text: "Ask for time-off; bring daughter to the polyclinic",
+				optionB_text:
+					"Leave her in the sick bay; bring her to a private clinic at night after work",
 				optionA_consequence: {
 					resourceChange: -20,
 					narrative:
-						"You took care of your daughter, which she appreciated, but you had to take time off work.",
+						"Taking time off to care for your daughter made her feel loved, but it upset your employer.",
 					jobHits: 1,
 					removeFamilyHits: 1,
 				},
@@ -296,12 +322,13 @@ export const seed = mutation({
 				optionB_text: "Contest in court; miss a day of work",
 				optionA_consequence: {
 					resourceChange: -100,
-					narrative: "You've settled the charges and avoided legal trouble.",
+					narrative:
+						"You settled the conservancy charges and avoided legal trouble.",
 				},
 				optionB_consequence: {
 					resourceChange: 0,
 					narrative:
-						"You missed a day of work to deal with this, harming your standing with your employer.",
+						"You missed a day of work to resolve your legal issues but it damaged your standing at work.",
 					jobHits: 1,
 				},
 			},
@@ -320,7 +347,7 @@ export const seed = mutation({
 				optionB_consequence: {
 					resourceChange: 0,
 					narrative:
-						"Your son misses out on a major life experience due to financial constraints.",
+						"Your son missed out on a significant life experience, and he hated you for it.",
 					familyHits: 2,
 				},
 			},
@@ -328,22 +355,21 @@ export const seed = mutation({
 				day: 14,
 				prompt: "Second PAYDAY!",
 				optionA_text: "Receive Salary",
-				optionB_text: "Out of job",
+				optionB_text: "Out-of-job",
 				optionA_consequence: {
 					resourceChange: 300,
-					narrative:
-						"You made it! You received your second week's salary. (This option is available if you have not been fired).",
+					narrative: "You made it! You received your second pay cheque.",
 				},
 				optionB_consequence: {
 					resourceChange: 0,
 					narrative:
-						"Unfortunately, you were let go from your job. (This happens if you accumulated 3 Job Hits).",
+						"You were let go from your job and missed your second pay cheque.",
 				},
 				subPages: [
 					{
-						title: "Final Loan & Ring Reminder",
+						title: "Loan & Ring",
 						content:
-							"Today is your last chance to repay any remaining loans and redeem your wedding ring.\nIgnoring this reminder will cost you a Health Hit, and if that pushes you to three, you'll lose your job.",
+							"You must repay your outstanding loan and redeem your wedding ring. If you don't, you will receive one Health Hit.",
 					},
 				],
 			},
