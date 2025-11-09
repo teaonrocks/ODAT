@@ -54,6 +54,13 @@ export default function ResultsPage() {
 
 					{/* Results Summary */}
 					<div className="bg-card rounded-2xl shadow-lg p-8 space-y-6 border border-muted-foreground/20">
+						{/* Header */}
+						<div className="text-center">
+							<h2 className="text-2xl md:text-3xl font-bold text-foreground">
+								Final Status
+							</h2>
+						</div>
+
 						{/* Final Resources */}
 						<div className="text-center">
 							<div className="text-sm text-muted-foreground uppercase tracking-wide">
@@ -86,29 +93,53 @@ export default function ResultsPage() {
 							{!hitsHidden && (
 								<>
 									<div className="text-center">
-										<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+										<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
 											Family Hits
 										</div>
-										<div className="text-2xl font-bold text-foreground mt-2">
-											{player.familyHits}
+										<div className="flex justify-center gap-1">
+											{Array.from({ length: player.familyHits || 0 }, (_, i) => (
+												<div
+													key={i}
+													className="w-6 h-6 rounded-full bg-blue-500 border-2 border-blue-600"
+												/>
+											))}
+											{player.familyHits === 0 && (
+												<span className="text-muted-foreground">0</span>
+											)}
 										</div>
 									</div>
 
 									<div className="text-center">
-										<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+										<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
 											Health Hits
 										</div>
-										<div className="text-2xl font-bold text-foreground mt-2">
-											{player.healthHits}
+										<div className="flex justify-center gap-1">
+											{Array.from({ length: player.healthHits || 0 }, (_, i) => (
+												<div
+													key={i}
+													className="w-6 h-6 rounded-full bg-red-500 border-2 border-red-600"
+												/>
+											))}
+											{player.healthHits === 0 && (
+												<span className="text-muted-foreground">0</span>
+											)}
 										</div>
 									</div>
 
 									<div className="text-center">
-										<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+										<div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
 											Job Hits
 										</div>
-										<div className="text-2xl font-bold text-foreground mt-2">
-											{player.jobHits}
+										<div className="flex justify-center gap-1">
+											{Array.from({ length: player.jobHits || 0 }, (_, i) => (
+												<div
+													key={i}
+													className="w-6 h-6 rounded-full bg-green-500 border-2 border-green-600"
+												/>
+											))}
+											{player.jobHits === 0 && (
+												<span className="text-muted-foreground">0</span>
+											)}
 										</div>
 									</div>
 								</>
@@ -117,7 +148,7 @@ export default function ResultsPage() {
 
 						{hitsHidden && (
 							<div className="text-sm text-muted-foreground bg-muted/30 border border-muted-foreground/20 rounded-lg p-4">
-								Your facilitator has hidden hit counts for this session.
+								Activity Host has hidden hit counts.
 							</div>
 						)}
 
@@ -163,36 +194,34 @@ export default function ResultsPage() {
 					</DialogHeader>
 					<div className="mt-4">
 						<div className="space-y-4">
-							{player.choices?.map((c, idx) => (
-								<div
-									key={idx}
-									className="border rounded-lg p-4 hover:bg-muted/20 transition-colors border-muted-foreground/20"
-								>
-									<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-										<div className="flex items-center gap-3">
-											<span className="font-bold text-muted-foreground bg-muted/30 px-3 py-1 rounded-full text-sm">
-												Day {c.day}
-											</span>
-											<span className="text-blue-600 font-semibold">
-												Choice {c.choice}
+							{player.choices?.map((c, idx) => {
+								// Determine color based on choice: A = blue, B = yellow
+								const choiceColor =
+									c.choice === "A"
+										? "bg-blue-600 border-blue-700"
+										: "bg-yellow-600 border-yellow-700";
+								return (
+									<div
+										key={idx}
+										className={`border-2 rounded-lg p-4 hover:opacity-90 transition-opacity ${choiceColor}`}
+									>
+										<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+											<div className="flex items-center gap-3">
+												<span className="font-bold text-white bg-white/20 px-3 py-1 rounded-full text-sm">
+													Day {c.day}
+												</span>
+											</div>
+											<span className="font-bold text-sm px-3 py-1 rounded-full bg-white/90 text-black">
+												{c.consequence.resourceChange >= 0 ? "+" : ""}$
+												{c.consequence.resourceChange}
 											</span>
 										</div>
-										<span
-											className={`font-bold text-sm px-3 py-1 rounded-full ${
-												c.consequence.resourceChange >= 0
-													? "bg-green-100 text-green-700"
-													: "bg-red-100 text-red-700"
-											}`}
-										>
-											{c.consequence.resourceChange >= 0 ? "+" : ""}$
-											{c.consequence.resourceChange}
-										</span>
+										<div className="text-white text-sm leading-relaxed">
+											{c.consequence.narrative}
+										</div>
 									</div>
-									<div className="text-muted-foreground text-sm leading-relaxed">
-										{c.consequence.narrative}
-									</div>
-								</div>
-							))}
+								);
+							})}
 						</div>
 					</div>
 				</DialogContent>

@@ -236,7 +236,7 @@ export const seed = mutation({
 					{
 						title: "Loan & Ring",
 						content:
-							"You could choose to repay your loan. If you don't, you will receive one Health Hit.\nNo penalty for not redeeming your ring at this moment.",
+							"You could choose to repay your loan. If you don't, you will receive one Health Hit.\n\nNo penalty for not redeeming your ring at this moment.",
 					},
 				],
 			},
@@ -366,6 +366,20 @@ export const seed = mutation({
 						"You were let go from your job and missed your second pay cheque.",
 				},
 				subPages: [
+					{
+						title: "End of two weeks",
+						content:
+							"You need to repay your loans and redeem your wedding ring.",
+					},
+					{
+						title: "Reflection",
+						content: "Do you think you can make it through another 14 days?",
+					},
+					{
+						title: "Before we end...",
+						content:
+							"close your eyes, take a deep breath, and take off the hat of the single parent.",
+					},
 					{
 						title: "Loan & Ring",
 						content:

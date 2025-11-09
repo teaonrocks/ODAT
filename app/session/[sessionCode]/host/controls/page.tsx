@@ -175,7 +175,6 @@ export default function PresenterControlsPage() {
 		color: string;
 	} | null>(null);
 	const [groupName, setGroupName] = useState("");
-	const [groupColor, setGroupColor] = useState("#3B82F6");
 
 	// Auto-advance from day transition to scenario after configurable duration
 	useEffect(() => {
@@ -228,14 +227,18 @@ export default function PresenterControlsPage() {
 	const handleCreateGroup = async () => {
 		if (!session?._id || !groupName.trim()) return;
 
+		// Use default color - assign colors automatically from predefined list
+		const existingGroups = session.groups || [];
+		const colorIndex = existingGroups.length % predefinedColors.length;
+		const defaultColor = predefinedColors[colorIndex];
+
 		try {
 			await createGroup({
 				sessionId: session._id,
 				name: groupName.trim(),
-				color: groupColor,
+				color: defaultColor,
 			});
 			setGroupName("");
-			setGroupColor("#3B82F6");
 			setIsGroupDialogOpen(false);
 		} catch (error) {
 			console.error("Failed to create group:", error);
@@ -245,16 +248,18 @@ export default function PresenterControlsPage() {
 	const handleUpdateGroup = async () => {
 		if (!session?._id || !editingGroup?.id || !groupName.trim()) return;
 
+		// Keep existing color when updating
+		const existingColor = editingGroup.color || "#3B82F6";
+
 		try {
 			await updateGroup({
 				sessionId: session._id,
 				groupId: editingGroup.id,
 				name: groupName.trim(),
-				color: groupColor,
+				color: existingColor,
 			});
 			setEditingGroup(null);
 			setGroupName("");
-			setGroupColor("#3B82F6");
 			setIsGroupDialogOpen(false);
 		} catch (error) {
 			console.error("Failed to update group:", error);
@@ -277,7 +282,6 @@ export default function PresenterControlsPage() {
 	const openCreateGroupDialog = () => {
 		setEditingGroup(null);
 		setGroupName("");
-		setGroupColor("#3B82F6");
 		setIsGroupDialogOpen(true);
 	};
 
@@ -288,7 +292,6 @@ export default function PresenterControlsPage() {
 	}) => {
 		setEditingGroup(group);
 		setGroupName(group.name);
-		setGroupColor(group.color);
 		setIsGroupDialogOpen(true);
 	};
 
@@ -336,9 +339,11 @@ export default function PresenterControlsPage() {
 										Current Status
 									</div>
 									<div className="text-lg font-medium">{session.gameState}</div>
-									<div className="text-sm text-muted-foreground">
-										Day {session.currentDay}
-									</div>
+									{session.gameState !== "INSTRUCTIONS" && (
+										<div className="text-sm text-muted-foreground">
+											Day {session.currentDay}
+										</div>
+									)}
 								</div>
 
 								{session.gameState === "LOBBY" && (
@@ -484,6 +489,8 @@ export default function PresenterControlsPage() {
 											>
 												{session.currentDay === 0
 													? "🚀 Begin Day 1"
+													: scenario?.subPages && scenario.subPages.length > 0
+													? "📄 Sub-page"
 													: "⏭️ Next Day"}
 											</Button>
 										</div>
@@ -691,10 +698,6 @@ export default function PresenterControlsPage() {
 													className="flex items-center justify-between p-3 border rounded-lg"
 												>
 													<div className="flex items-center gap-3">
-														<div
-															className="w-4 h-4 rounded-full"
-															style={{ backgroundColor: group.color }}
-														></div>
 														<span className="font-medium">{group.name}</span>
 														<span className="text-sm text-muted-foreground">
 															(
@@ -920,29 +923,6 @@ export default function PresenterControlsPage() {
 								value={groupName}
 								onChange={(e) => setGroupName(e.target.value)}
 								placeholder="Enter group name"
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label>Group Color</Label>
-							<div className="flex gap-2 flex-wrap">
-								{predefinedColors.map((color) => (
-									<button
-										key={color}
-										className={`w-8 h-8 rounded-full border-2 ${
-											groupColor === color
-												? "border-gray-800"
-												: "border-gray-300"
-										}`}
-										style={{ backgroundColor: color }}
-										onClick={() => setGroupColor(color)}
-									/>
-								))}
-							</div>
-							<Input
-								type="color"
-								value={groupColor}
-								onChange={(e) => setGroupColor(e.target.value)}
-								className="w-full h-10"
 							/>
 						</div>
 						<div className="flex gap-2 pt-4">

@@ -257,7 +257,7 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 								</>
 							) : (
 								<div className="p-3 rounded-lg bg-muted/40 text-sm text-muted-foreground border border-muted-foreground/20 text-center">
-									Hits are hidden by your facilitator right now.
+									Hits are currently hidden by Activity Host
 								</div>
 							)}
 						</div>
@@ -394,7 +394,7 @@ export function PlayerStatus({ player, showHits = true }: PlayerStatusProps) {
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>You&apos;ve Been Fired</AlertDialogTitle>
+						<AlertDialogTitle>You&apos;ve Been Fired!</AlertDialogTitle>
 						<AlertDialogDescription>
 							You have been fired from your job. You will not receive any money
 							on the next payday. You still have to keep making decisions—life

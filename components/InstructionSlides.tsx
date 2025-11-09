@@ -54,7 +54,7 @@ const instructionSlides: InstructionSlide[] = [
 		title: "Consequences of Choices",
 		content: [
 			"Your decision will lead to consequences.",
-			"You might receive a Family Hit, a Health Hit or a Job Hit.",
+			"You might receive a Family Hit, a Health Hit, or a Job Hit.",
 			"Example: Day 7 – You have a toothache.",
 		],
 		isConsequenceExample: true,
@@ -77,7 +77,7 @@ const instructionSlides: InstructionSlide[] = [
 			"If funds are insufficient, you may:",
 			"1. Borrow money (up to 3 times within 2 weeks)",
 			"2. Pawn your gold wedding ring (from late spouse)",
-			"3. Choose the other option for that day",
+			"3. Choose the more affordable option for that day",
 		],
 	},
 	{
@@ -132,11 +132,26 @@ export default function InstructionSlides({
 					<CardContent>
 						<div className="bg-muted/40 rounded-3xl px-10 py-12">
 							<div className="space-y-6 text-2xl sm:text-3xl leading-snug text-center">
-								{slide.content.map((line, index) => (
-									<p key={index} className="text-center">
-										{line}
-									</p>
-								))}
+								{slide.content.map((line, index) => {
+									// Handle bold text formatting for slide 10
+									if (line.includes("**other more affordable option**")) {
+										const parts = line.split(
+											"**other more affordable option**"
+										);
+										return (
+											<p key={index} className="text-center">
+												{parts[0]}
+												<strong>other more affordable option</strong>
+												{parts[1]}
+											</p>
+										);
+									}
+									return (
+										<p key={index} className="text-center">
+											{line}
+										</p>
+									);
+								})}
 							</div>
 						</div>
 					</CardContent>

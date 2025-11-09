@@ -39,9 +39,6 @@ function QRCodeCard({ sessionCode }: { sessionCode: string }) {
 						className="w-64 h-64"
 					/>
 				</div>
-				<p className="text-lg sm:text-2xl text-muted-foreground">
-					Players can scan this code to join the session
-				</p>
 			</CardContent>
 		</Card>
 	);
@@ -274,32 +271,6 @@ export default function HostPage() {
 								</div>
 							</CardContent>
 						</Card>
-					</div>
-
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-						{scenario.optionA_details ? (
-							<Card className="bg-background/70 border border-border/40 shadow-lg">
-								<CardContent className="text-xl">
-									{scenario.optionA_details.map((detail, index) => (
-										<p key={index}>{detail}</p>
-									))}
-								</CardContent>
-							</Card>
-						) : (
-							<div className="hidden lg:block" />
-						)}
-
-						{scenario.optionB_details ? (
-							<Card className="bg-background/70 border border-border/40 shadow-lg">
-								<CardContent className="text-xl">
-									{scenario.optionB_details.map((detail, index) => (
-										<p key={index}>{detail}</p>
-									))}
-								</CardContent>
-							</Card>
-						) : (
-							<div className="hidden lg:block" />
-						)}
 					</div>
 				</div>
 			</main>

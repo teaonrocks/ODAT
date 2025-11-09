@@ -112,6 +112,24 @@ export const showDayResult = mutation({
 		const session = await ctx.db.get(sessionId);
 		if (!session) throw new Error("Session not found");
 
+		// If it's Day 1, update employment status for all players who made a choice
+		if (session.currentDay === 1) {
+			const players = await ctx.db
+				.query("players")
+				.withIndex("by_session", (q) => q.eq("sessionId", sessionId))
+				.collect();
+
+			for (const player of players) {
+				// Check if player made a choice on Day 1
+				const hasDay1Choice = (player.choices ?? []).some(
+					(choice) => choice.day === 1
+				);
+				if (hasDay1Choice && !player.isEmployed) {
+					await ctx.db.patch(player._id, { isEmployed: true });
+				}
+			}
+		}
+
 		await ctx.db.patch(sessionId, {
 			gameState: "DAY_RESULT",
 			currentSubPage: 0,

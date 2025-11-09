@@ -12,6 +12,7 @@ import {
 	JOB_TERMINATION_STORAGE_KEY,
 } from "@/components/PlayerStatus";
 import DayTransition from "@/components/DayTransition";
+import DayResult from "@/components/DayResult";
 import {
 	Select,
 	SelectContent,
@@ -384,8 +385,13 @@ function LoanReminderSubPage({
 					if (ringRedemptionCost > 0) {
 						parts.push("wedding ring ($159)");
 					}
-					const details = parts.length > 0 ? ` (${parts.join(" and ")})` : "";
-					setStatusMessage(`Success! You resolved your obligations${details}.`);
+					const details = parts.length > 0 ? `(${parts.join(" and ")})` : "";
+					// For Day 8 and 14, only show cost breakdown
+					if (day === 8 || day === 14) {
+						setStatusMessage(details);
+					} else {
+						setStatusMessage(`Success! You resolved your obligations ${details}.`);
+					}
 					break;
 				}
 				case "ignored": {
@@ -429,7 +435,7 @@ function LoanReminderSubPage({
 							<h2 className="text-lg sm:text-xl font-semibold text-foreground">
 								{subPage.title}
 							</h2>
-							<p className="text-sm sm:text-base text-muted-foreground">
+							<p className="text-sm sm:text-base text-muted-foreground whitespace-pre-line">
 								{subPage.content}
 							</p>
 						</div>
@@ -495,7 +501,7 @@ function LoanReminderSubPage({
 									variant="outline"
 									onClick={() => handleAction("ignore")}
 									disabled={isIgnoreDisabled}
-									className="h-auto py-4 text-base"
+									className={`h-auto py-4 text-base ${isDay14Reminder ? "bg-gray-200 text-gray-800 hover:bg-gray-300" : ""}`}
 									title={
 										isDay14Reminder && canResolve
 											? "You have enough cash to resolve this reminder. Let your host know you're ready to pay."
@@ -505,18 +511,18 @@ function LoanReminderSubPage({
 									{ignoreButtonLabel}
 								</Button>
 							</div>
-						) : (
+						) : day !== 8 ? (
 							<div className="text-center text-sm sm:text-base text-muted-foreground">
 								You have no outstanding loan or ring obligations to resolve.
 							</div>
-						)}
+						) : null}
 
 						{errorMessage && (
 							<div className="text-sm text-center text-red-600">
 								{errorMessage}
 							</div>
 						)}
-						{statusMessage && (
+						{statusMessage && day !== 14 && (
 							<div className="text-sm text-center text-muted-foreground">
 								{statusMessage}
 							</div>
@@ -527,9 +533,9 @@ function LoanReminderSubPage({
 								{resources}.
 							</div>
 						)}
-						{alreadyResolved && (
+						{alreadyResolved && day !== 14 && (
 							<div className="text-sm text-center text-green-600">
-								You’ve already completed this reminder.
+								You've already completed this reminder.
 							</div>
 						)}
 					</CardContent>
@@ -731,7 +737,7 @@ export default function PlayerPage() {
 								Instructions in progress
 							</p>
 							<p className="text-sm text-muted-foreground">
-								Please listen to your facilitator
+								Please listen to Activity Host
 							</p>
 						</div>
 
@@ -774,18 +780,27 @@ export default function PlayerPage() {
 
 	if (session.gameState === "DAY_RESULT") {
 		const day = session.currentDay ?? 0;
-		if (player && scenario?.subPages && (day === 8 || day === 14)) {
+		if (scenario?.subPages) {
 			const currentSubPage = session.currentSubPage ?? 0;
 			const subPage = scenario.subPages[currentSubPage];
 			if (subPage) {
-				return (
-					<LoanReminderSubPage
-						day={day}
-						player={player}
-						subPage={subPage}
-						handleLoanReminder={handleLoanReminderMutation}
-					/>
-				);
+				// Show loan reminder sub-page only when title is "Loan & Ring" on Day 8 or Day 14
+				const isLoanReminderDay = day === 8 || day === 14;
+				const isLoanReminderPage = subPage.title === "Loan & Ring";
+
+				if (player && isLoanReminderDay && isLoanReminderPage) {
+					return (
+						<LoanReminderSubPage
+							day={day}
+							player={player}
+							subPage={subPage}
+							handleLoanReminder={handleLoanReminderMutation}
+						/>
+					);
+				}
+
+				// Show regular DayResult for all other sub-pages
+				return <DayResult title={subPage.title} content={subPage.content} />;
 			}
 		}
 		return <DayResultHoldingPage day={day} />;

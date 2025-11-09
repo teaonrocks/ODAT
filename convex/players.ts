@@ -87,10 +87,7 @@ export const makeChoice = mutation({
 		let jobHits = (player.jobHits ?? 0) + (consequence.jobHits ?? 0);
 		let isEmployed = player.isEmployed ?? false;
 
-		// Day 1 is the job interview - player gets employed after making their choice
-		if (day === 1) {
-			isEmployed = true;
-		}
+		// Note: Day 1 employment status is updated when host advances to sub-page, not here
 
 		// Handle removeFamilyHits
 		if (consequence.removeFamilyHits) {
