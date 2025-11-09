@@ -34,13 +34,11 @@ type HandleLoanReminderMutation = ReturnType<
 
 // Component for displaying Day 0 readiness screen
 function Day0ReadyScreen({
-	session,
 	scenario,
 	player,
 	playerId,
 	makeChoice,
 }: {
-	session: Session;
 	scenario: Scenario;
 	player: Player;
 	playerId: string | null;
@@ -535,7 +533,7 @@ function LoanReminderSubPage({
 						)}
 						{alreadyResolved && day !== 14 && (
 							<div className="text-sm text-center text-green-600">
-								You've already completed this reminder.
+								You&apos;ve already completed this reminder.
 							</div>
 						)}
 					</CardContent>
@@ -847,7 +845,6 @@ export default function PlayerPage() {
 					<div className="max-w-4xl mx-auto flex flex-col gap-2 sm:gap-4">
 						<PlayerStatusSection player={player} showHits={!session.hideHits} />
 						<Day0ReadyScreen
-							session={session}
 							scenario={scenario}
 							player={player}
 							playerId={playerId}
